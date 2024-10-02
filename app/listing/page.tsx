@@ -7,10 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface Project {
   id: number;
@@ -63,7 +82,7 @@ export default function MainJobListingPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedSkill, setSelectedSkill] = useState<string>('all');
-  const [budgetRange, setBudgetRange] = useState<[number, number]>([0, 10000]);
+  const [budgetRange, setBudgetRange] = useState<number[]>([0, 10000]);
   const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
 
   useEffect(() => {
@@ -117,12 +136,14 @@ export default function MainJobListingPage() {
         
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filters */}
-          <div className="w-full md:w-1/4 bg-zinc-800 p-6 rounded-lg shadow-lg">
-            <h3 className="text-2xl font-semibold mb-4 flex items-center">
-              <Filter className="mr-2" size={24} />
-              Filters
-            </h3>
-            <div className="space-y-6">
+          <Card className="w-full md:w-1/4 bg-zinc-800 border-zinc-700">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Filter className="mr-2" size={24} />
+                Filters
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div>
                 <label className="block mb-2 text-sm font-medium">Search</label>
                 <Input
@@ -181,8 +202,8 @@ export default function MainJobListingPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Project Listings */}
           <div className="w-full md:w-3/4">
@@ -195,42 +216,47 @@ export default function MainJobListingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-zinc-800 rounded-lg shadow-lg overflow-hidden border border-zinc-700 hover:border-indigo-500 transition-colors duration-300"
                   >
-                    <div className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-2xl font-semibold text-indigo-400">{project.title}</h3>
-                        <Badge variant="outline" className="text-emerald-400 border-emerald-400">
-                          {project.status}
-                        </Badge>
-                      </div>
-                      <p className="text-zinc-300 mb-4">{project.description}</p>
-                      <div className="flex flex-wrap gap-4 mb-4">
-                        <div className="flex items-center">
-                          <DollarSign className="text-indigo-400 mr-2" size={18} />
-                          <span className="text-zinc-200 font-medium">${project.budget.toLocaleString()}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="text-indigo-400 mr-2" size={18} />
-                          <span className="text-zinc-300">{new Date(project.deadline).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <User className="text-indigo-400 mr-2" size={18} />
-                          <span className="text-zinc-300">{project.experience}</span>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Tags className="text-indigo-400 mr-2" size={18} />
-                        {project.skillTags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="bg-zinc-700 text-zinc-200">
-                            {tag}
+                    <Card className="bg-zinc-800 border-zinc-700 hover:border-indigo-500 transition-colors duration-300">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-2xl font-semibold text-indigo-400">{project.title}</CardTitle>
+                          <Badge variant="outline" className="text-emerald-400 border-emerald-400">
+                            {project.status}
                           </Badge>
-                        ))}
-                      </div>
-                      <Button variant="default" className="w-full bg-indigo-600 hover:bg-indigo-700 transition-colors duration-300">
-                        Apply Now
-                      </Button>
-                    </div>
+                        </div>
+                        <CardDescription>{project.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-4 mb-4">
+                          <div className="flex items-center">
+                            <DollarSign className="text-indigo-400 mr-2" size={18} />
+                            <span className="text-zinc-200 font-medium">${project.budget.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Calendar className="text-indigo-400 mr-2" size={18} />
+                            <span className="text-zinc-300">{new Date(project.deadline).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center">
+                            <User className="text-indigo-400 mr-2" size={18} />
+                            <span className="text-zinc-300">{project.experience}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Tags className="text-indigo-400 mr-2" size={18} />
+                          {project.skillTags.map((tag, index) => (
+                            <Badge key={index} variant="secondary" className="bg-zinc-700 text-zinc-200">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="default" className="w-full bg-indigo-600 hover:bg-indigo-700 transition-colors duration-300">
+                          Apply Now
+                        </Button>
+                      </CardFooter>
+                    </Card>
                   </motion.div>
                 ))}
               </div>
