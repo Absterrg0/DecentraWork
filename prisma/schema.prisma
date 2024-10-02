@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  username        String    @unique
+  email           String    @unique
+  password        String
+  walletAddress   String?   @unique
+  bio             String?
+  skillTags       String[]
+  rating          Float     @default(0)
+  createdProjects Project[]  @relation("ClientProjects")
+  appliedGigs     Gig[]      @relation("FreelancerGigs")
+  reviews         Review[]   @relation("UserReviews")
+  payments        Payment[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Project {
+  id          Int           @id @default(autoincrement())
+  title       String
+  description String
+  budget      Float
+  deadline    DateTime?
+  client      User          @relation("ClientProjects", fields: [clientId], references: [id])
+  clientId    Int
+  skillTags   String[]
+  gigs        Gig[]         @relation("ProjectGigs")
+  payments    Payment[]
+  dispute     Dispute[]
+  status      ProjectStatus  @default(OPEN)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Gig {
+  id           Int       @id @default(autoincrement())
+  freelancer   User      @relation("FreelancerGigs", fields: [freelancerId], references: [id])
+  freelancerId Int
+  project      Project   @relation("ProjectGigs", fields: [projectId], references: [id])
+  projectId    Int
+  proposal     String     // Description of the freelancer's approach to the project
+  status       GigStatus  @default(PENDING)
+  startDate    DateTime?
+  endDate      DateTime?
+  review       Review?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Payment {
+  id            Int            @id @default(autoincrement())
+  project       Project        @relation(fields: [projectId], references: [id])
+  projectId     Int
+  user          User           @relation(fields: [userId], references: [id])
+  userId        Int
+  amount        Float
+  currency      CurrencyType
+  paymentMethod PaymentMethod
+  transactionId String?
+  status        PaymentStatus  @default(PENDING)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  gig          Gig      @relation(fields: [gigId], references: [id])
+  gigId        Int      @unique
+  reviewer     User     @relation("UserReviews", fields: [reviewerId], references: [id])
+  reviewerId   Int
+  rating       Float
+  comment      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Dispute {
+  id          Int           @id @default(autoincrement())
+  project     Project       @relation(fields: [projectId], references: [id])
+  projectId   Int
+  description String
+  status      DisputeStatus @default(OPEN)
+  resolution  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum GigStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  ONGOING
+  COMPLETED
+  CANCELED
+}
+
+enum CurrencyType {
+  USD
+  ETH
+  SOL
+  USDC
+  DAI
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  CRYPTO
+  ESCROW
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ProjectStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+}
