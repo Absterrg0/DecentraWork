@@ -28,7 +28,7 @@ export default function SignupForm() {
 
     try {
       // Make the API call to create the account
-      await axios.post('/api/auth/signup', { name, email, password })  // Updated field
+      await axios.post('/api/user/account', { name, email, password })  // Updated field
       setIsLoading(false)
 
       // Show a success toast
@@ -39,7 +39,7 @@ export default function SignupForm() {
 
       // Redirect to the home page after 3 seconds
       setTimeout(() => {
-        router.push('/') // Redirect to home
+        router.push('/onboarding') // Redirect to home
       }, 3000)
     } catch (error) {
       setIsLoading(false)

@@ -5,7 +5,7 @@ import client from '@/db';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client'
 
-export const authValues: AuthOptions = {
+export const authOptions: AuthOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -36,11 +36,13 @@ export const authValues: AuthOptions = {
                         throw new Error("Incorrect Password");
                     }
 
-                    // Return user object if authentication is successful
                     return {
                         id: user.id.toString(),
                         email: user.email,
-                        name: user.name
+                        name: user.name,
+                        experience: user.experience,
+                        skills: user.skills,
+                        bio: user.bio,
                     };
                 } catch (e) {
                     console.error(e);
@@ -49,7 +51,43 @@ export const authValues: AuthOptions = {
             }
         })
     ],
+    pages: {
+        signIn: '/auth/signin', // Custom sign-in page
+    },
+    callbacks: {
+        async jwt({ token, user, account }) {
+            if (account && user) {
+                return {
+                    ...token,
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    experience: (user as any).experience,
+                    skills: (user as any).skills,
+                    bio: (user as any).bio,
+                };
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            return {
+                ...session,
+                user: {
+                    ...session.user,
+                    id: token.id as string,
+                    email: token.email as string,
+                    name: token.name as string,
+                    experience: token.experience as string | null,
+                    skills: token.skills as string[],
+                    bio: token.bio as string | null,
+                }
+            };
+        },
+    },
     secret: process.env.NEXTAUTH_SECRET,
+    session: {
+        strategy: 'jwt',
+    },
 };
 
-export default authValues;
+export default authOptions;

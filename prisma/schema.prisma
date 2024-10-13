@@ -22,12 +22,13 @@ model User {
   name              String
   email             String    @unique
   password          String
-  experience        String
-  skills            String[]
-  bio               String
+  experience        String?
+  skills            String[]// Optional array of skills, can be null
+  bio               String?
   projectsCreated   Project[] @relation("ClientProjects")
   applications      Application[]
 }
+
 
 model Project {
   id                Int        @id @default(autoincrement())
