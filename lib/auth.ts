@@ -5,7 +5,7 @@ import client from '@/db';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client'
 
-export const authOptions: AuthOptions = {
+export const authValues: AuthOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -90,4 +90,4 @@ export const authOptions: AuthOptions = {
     },
 };
 
-export default authOptions;
+export default authValues;
