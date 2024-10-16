@@ -29,7 +29,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 interface Project {
   id: number;
   title: string;
@@ -45,6 +46,7 @@ interface Project {
 const experienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
 
 export default function DashBoardComponent() {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedSkill, setSelectedSkill] = useState<string>('all');
@@ -58,8 +60,8 @@ export default function DashBoardComponent() {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/projects');
-      const data = await response.json();
+      const response = await axios.get('/api/projects');
+      const data = response.data;
       setProjects(data);
       const skills = Array.from(new Set(data.flatMap((project: Project) => project.skillsRequired)));
       setAllSkills(skills as string[]);
@@ -75,7 +77,9 @@ export default function DashBoardComponent() {
     (project.budget >= budgetRange[0] && project.budget <= budgetRange[1]) &&
     (selectedExperience.length === 0 || selectedExperience.includes(project.experienceReq))
   );
-
+  const handleApply = (projectId: number) => {
+    router.push(`/projects/${projectId}/apply`);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white">
       <header className="bg-black bg-opacity-30 backdrop-blur-md shadow-lg">
@@ -227,7 +231,7 @@ export default function DashBoardComponent() {
                           </div>
                           <div className="flex items-center">
                             <Calendar className="text-yellow-400 mr-2" size={18} />
-                            <span className="text-gray-300">{new Date(project.timeExpected).toLocaleDateString()}</span>
+                            <span className="text-gray-300">{project.timeExpected}</span>
                           </div>
                           <div className="flex items-center">
                             <User className="text-yellow-400 mr-2" size={18} />
@@ -244,7 +248,7 @@ export default function DashBoardComponent() {
                         </div>
                       </CardContent>
                       <CardFooter>
-                        <Button variant="default" className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white transition-all duration-300 transform hover:scale-105">
+                        <Button onClick={()=>handleApply(project.id)} variant="default" className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white transition-all duration-300 transform hover:scale-105">
                           Apply Now
                         </Button>
                       </CardFooter>
