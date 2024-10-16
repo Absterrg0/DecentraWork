@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/card";
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+
 interface Project {
   id: number;
   title: string;
@@ -53,11 +55,22 @@ export default function DashBoardComponent() {
   const [budgetRange, setBudgetRange] = useState<number[]>([0, 10000]);
   const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
   const [allSkills, setAllSkills] = useState<string[]>([]);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
+  const handleMyProfile = () => {
+    if (status === "authenticated" && session?.user?.id) {
+      router.push(`/user/${session.user.id}`);
+    } else if (status === "unauthenticated") {
+      router.push('/login'); // Redirect to login page if not authenticated
+    } else {
+      console.error('User session is loading or user ID is not available');
+      // Optionally show a loading state or error message to the user
+    }
+  };
   const fetchProjects = async () => {
     try {
       const response = await axios.get('/api/projects');
@@ -77,9 +90,11 @@ export default function DashBoardComponent() {
     (project.budget >= budgetRange[0] && project.budget <= budgetRange[1]) &&
     (selectedExperience.length === 0 || selectedExperience.includes(project.experienceReq))
   );
+
   const handleApply = (projectId: number) => {
     router.push(`/projects/${projectId}/apply`);
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white">
       <header className="bg-black bg-opacity-30 backdrop-blur-md shadow-lg">
@@ -97,7 +112,7 @@ export default function DashBoardComponent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-black bg-opacity-90 border border-yellow-400">
-              <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300">
+              <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300" onClick={handleMyProfile}>
                 <User className="mr-2 h-4 w-4" />
                 <span>My Profile</span>
               </DropdownMenuItem>
@@ -248,7 +263,7 @@ export default function DashBoardComponent() {
                         </div>
                       </CardContent>
                       <CardFooter>
-                        <Button onClick={()=>handleApply(project.id)} variant="default" className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white transition-all duration-300 transform hover:scale-105">
+                        <Button onClick={() => handleApply(project.id)} variant="default" className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white transition-all duration-300 transform hover:scale-105">
                           Apply Now
                         </Button>
                       </CardFooter>
