@@ -52,4 +52,5 @@ model Application {
   projectId         Int
   applicant         User      @relation(fields: [applicantId], references: [id])
   applicantId       Int
+  applicationStatus String    @default("pending") // Status of the application
 }

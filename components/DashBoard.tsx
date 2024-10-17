@@ -34,6 +34,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import ProfileCompletionModal from './ui/profile-modal';
+
 interface Project {
   id: number;
   title: string;
@@ -68,15 +69,17 @@ export default function DashBoardComponent() {
   const { data: session, status } = useSession();
   const [isProfileComplete, setIsProfileComplete] = useState<boolean>(true);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+  const [sortByLatest, setSortByLatest] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProjects();
     checkProfileCompletion();
   }, [session]);
 
-  const handleSignOut = ()=>{
+  const handleSignOut = () => {
     signOut();
-  }
+  };
+
   const checkProfileCompletion = async () => {
     if (status === "authenticated" && session?.user?.id) {
       try {
@@ -93,6 +96,17 @@ export default function DashBoardComponent() {
       }
     }
   };
+
+  const handleMyProposals = () => {
+    if (status === "authenticated" && session?.user?.id) {
+      router.push(`/user/${session.user.id}/proposals`);
+    } else if (status === "unauthenticated") {
+      router.push('/login');
+    } else {
+      console.error('User session is loading or user ID is not available');
+    }
+  };
+
   const handleMyProfile = () => {
     if (status === "authenticated" && session?.user?.id) {
       router.push(`/user/${session.user.id}`);
@@ -117,21 +131,25 @@ export default function DashBoardComponent() {
 
   const filteredProjects = projects.filter(project =>
     (project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      project.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
     (selectedSkill === 'all' || project.skillsRequired.includes(selectedSkill)) &&
     (project.budget >= budgetRange[0] && project.budget <= budgetRange[1]) &&
     (selectedExperience.length === 0 || selectedExperience.includes(project.experienceReq))
   );
+
+  const sortedProjects = sortByLatest 
+    ? filteredProjects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) 
+    : filteredProjects;
 
   const handleApply = (projectId: number) => {
     router.push(`/projects/${projectId}/apply`);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white">
       <header className="bg-black bg-opacity-30 backdrop-blur-md shadow-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500">DecentraWork</h1>
+          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-500">DecentraWork</h1>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 text-white hover:text-yellow-400 transition-colors duration-300">
@@ -155,7 +173,7 @@ export default function DashBoardComponent() {
               </DropdownMenuItem>
               <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300">
                 <Briefcase className="mr-2 h-4 w-4" />
-                <span>My Proposals</span>
+                <span onClick={handleMyProposals}>My Proposals</span>
               </DropdownMenuItem>
               {!isProfileComplete && (
                 <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300" onClick={() => setShowProfileModal(true)}>
@@ -173,7 +191,7 @@ export default function DashBoardComponent() {
       </header>
       <main className="container mx-auto px-4 py-8">
         <motion.h2 
-          className="text-5xl font-bold mb-12 text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-yellow-400 to-cyan-500"
+          className="text-5xl font-bold mb-12 text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500"
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -192,127 +210,132 @@ export default function DashBoardComponent() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <label className="block mb-2 text-sm font-medium text-yellow-400">Search</label>
+                <label className="text-sm text-gray-400">Search</label>
                 <Input
-                  type="text"
-                  placeholder="Search projects..."
+                  placeholder="Search Projects"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-black bg-opacity-50 border-yellow-400 focus:border-pink-500 text-white placeholder-gray-400"
                 />
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-yellow-400">Skill</label>
-                <Select value={selectedSkill} onValueChange={setSelectedSkill}>
-                  <SelectTrigger className="w-full bg-black bg-opacity-50 border-yellow-400 text-white">
-                    <SelectValue placeholder="Filter by skill" />
+                <label className="text-sm text-gray-400">Skills</label>
+                <Select onValueChange={setSelectedSkill}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a skill" />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-yellow-400 text-white">
-                    <SelectItem value="all">All Skills</SelectItem>
-                    {allSkills.map((skill) => (
-                      <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    {allSkills.map((skill, index) => (
+                      <SelectItem key={index} value={skill}>{skill}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-yellow-400">Budget Range</label>
+                <label className="text-sm text-gray-400">Budget Range</label>
                 <Slider
+                  value={budgetRange}
                   min={0}
                   max={10000}
                   step={100}
-                  value={budgetRange}
                   onValueChange={setBudgetRange}
-                  className="w-full"
                 />
-                <div className="flex justify-between mt-2 text-sm text-yellow-400">
+                <div className="flex justify-between text-gray-400">
                   <span>${budgetRange[0]}</span>
                   <span>${budgetRange[1]}</span>
                 </div>
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-yellow-400">Experience Level</label>
-                {experienceLevels.map((level) => (
-                  <div key={level} className="flex items-center mb-2">
+                <label className="text-sm text-gray-400">Experience Level</label>
+                {experienceLevels.map(level => (
+                  <div key={level} className="flex items-center">
                     <Checkbox
                       id={level}
                       checked={selectedExperience.includes(level)}
                       onCheckedChange={(checked) => {
-                        setSelectedExperience(prev =>
-                          checked
-                            ? [...prev, level]
-                            : prev.filter(l => l !== level)
+                        setSelectedExperience(prev => 
+                          checked 
+                          ? [...prev, level] 
+                          : prev.filter(l => l !== level)
                         );
                       }}
-                      className="border-yellow-400 text-pink-500"
                     />
-                    <label htmlFor={level} className="ml-2 text-sm text-white">{level}</label>
+                    <label htmlFor={level} className="ml-2 text-sm text-gray-300">{level}</label>
                   </div>
                 ))}
               </div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-gray-400">Sort by Latest</label>
+                <Checkbox
+                  checked={sortByLatest}
+                  onCheckedChange={setSortByLatest}
+                />
+              </div>
             </CardContent>
           </Card>
-
-          {/* Project Listings */}
+          
+          {/* Projects List */}
           <div className="w-full lg:w-3/4">
             <AnimatePresence>
-              <motion.div 
-                className="space-y-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {filteredProjects.map((project) => (
+              {sortedProjects.length === 0 ? (
+                <motion.div
+                  key="no-projects"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center text-gray-400"
+                >
+                  <h3>No projects found</h3>
+                </motion.div>
+              ) : (
+                sortedProjects.map((project) => (
                   <motion.div
                     key={project.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                    className="mb-4"
                   >
-                    <Card className="bg-black bg-opacity-50 backdrop-blur-md border-yellow-400 hover:border-pink-500 transition-colors duration-300 shadow-lg hover:shadow-pink-500/20">
+                    <Card className="bg-gray-800 border border-yellow-400 shadow-lg">
                       <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500">{project.title}</CardTitle>
-                          <Badge variant="outline" className="text-cyan-400 border-cyan-400">
-                            NEW
-                          </Badge>
-                        </div>
-                        <CardDescription className="text-gray-300">{project.description}</CardDescription>
+                        <CardTitle className="text-lg font-semibold text-yellow-400">{project.title}</CardTitle>
+                        <CardDescription className="text-gray-400">{project.description}</CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="flex flex-wrap gap-4 mb-4">
-                          <div className="flex items-center">
-                            <DollarSign className="text-yellow-400 mr-2" size={18} />
-                            <span className="text-white font-medium">${project.budget.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="text-yellow-400 mr-2" size={18} />
-                            <span className="text-gray-300">{project.timeExpected}</span>
-                          </div>
-                          <div className="flex items-center">
-                            <User className="text-yellow-400 mr-2" size={18} />
-                            <span className="text-gray-300">{project.experienceReq}</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Tags className="text-yellow-400 mr-2" size={18} />
-                          {project.skillsRequired.map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="bg-yellow-400 bg-opacity-20 text-yellow-400">
-                              {skill}
+                        <div className="flex justify-between items-center">
+                          <div>
+                          <div className="flex flex-wrap mt-2">
+  {project.skillsRequired.map((skill, index) => (
+    <Badge key={index} variant="outline" className="bg-yellow-400 text-gray-900 ml-2">
+      {skill}
+    </Badge>
+  ))}
+</div>
+
+                            <Badge variant="destructive" className="bg-yellow-400 text-gray-900 ml-2">
+                              {project.experienceReq}
                             </Badge>
-                          ))}
+                          </div>
+                          <Button variant="outline" onClick={() => handleApply(project.id)} className="bg-yellow-400 text-gray-900 hover:bg-yellow-500 transition-colors duration-300">
+                            Apply Now
+                          </Button>
                         </div>
                       </CardContent>
                       <CardFooter>
-                        <Button onClick={() => handleApply(project.id)} variant="default" className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white transition-all duration-300 transform hover:scale-105">
-                          Apply Now
-                        </Button>
+                        <div className="flex items-center">
+                          <DollarSign className="mr-2 h-4 w-4 text-yellow-400" />
+                          <span className="text-sm text-gray-400">Budget: ${project.budget}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="mr-2 h-4 w-4 text-yellow-400" />
+                          <span className="text-sm text-gray-400">Posted on: {new Date(project.createdAt).toLocaleDateString()}</span>
+                        </div>
                       </CardFooter>
                     </Card>
                   </motion.div>
-                ))}
-              </motion.div>
+                ))
+              )}
             </AnimatePresence>
           </div>
         </div>

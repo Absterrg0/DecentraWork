@@ -1,16 +1,18 @@
 "use client"
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Menu, X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-export default function NavBar() {
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-  const handleGetStarted = () =>{
-    router.push('/signup')
-  }
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const router=useRouter();
+export default function NavBar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleGetStarted = () => {
+    router.push('/signup');
+  };
+
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 w-full max-w-3xl z-50">
       <div className="relative p-[1px] overflow-hidden rounded-full bg-gradient-to-r from-[#4d9abf] to-[#8a2be2]">
@@ -19,7 +21,7 @@ export default function NavBar() {
           style={{ originX: 0.5, originY: 0.5 }}
           animate={{
             rotate: 360,
-            scale: [1, 1.2, 1],
+            scale: [1, 1.1, 1],
           }}
           transition={{
             rotate: {
@@ -34,36 +36,37 @@ export default function NavBar() {
             },
           }}
         />
-        <motion.nav 
-          className="relative z-10 bg-gradient-to-r from-zinc-900 to-black rounded-full px-6 py-3"
+        <motion.nav
+          className="relative z-10 bg-gradient-to-r from-zinc-900 to-black rounded-full px-6 py-3 shadow-lg"
           initial={{ borderRadius: "9999px" }}
-          animate={{ 
+          animate={{
             borderRadius: ["9999px", "40px", "9999px"],
             boxShadow: [
-              "0 0 0 1px rgba(255,255,255,0.1)",
-              "0 0 0 2px rgba(255,255,255,0.2)",
-              "0 0 0 1px rgba(255,255,255,0.1)",
+              "0 4px 20px rgba(255,255,255,0.1)",
+              "0 8px 20px rgba(255,255,255,0.2)",
+              "0 4px 20px rgba(255,255,255,0.1)",
             ],
           }}
           transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
         >
           <div className="flex items-center justify-between">
-            <motion.button 
-              className="text-white font-bold text-xl tracking-wide"
+            <motion.button
+              className="text-white font-bold text-xl tracking-wide hover:underline"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/')}
             >
               DecentraWork
             </motion.button>
             <div className="hidden md:flex items-center space-x-8">
-                <motion.button 
-                  className="text-neutral-300 hover:text-white transition-colors text-sm uppercase tracking-wider"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleGetStarted}
-                >
-                  Get Started
-                </motion.button>
+              <motion.button
+                className="text-yellow-300 hover:text-yellow-200 transition-colors text-sm uppercase tracking-wider"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleGetStarted}
+              >
+                Get Started
+              </motion.button>
             </div>
             <motion.button
               className="text-neutral-300 hover:text-white transition-colors md:hidden"
@@ -84,10 +87,10 @@ export default function NavBar() {
           className="mt-2 bg-gradient-to-r from-zinc-900 to-black backdrop-blur-md rounded-lg p-4 md:hidden border border-white/10"
         >
           {["About", "Contact"].map((item) => (
-            <motion.a 
+            <motion.a
               key={item}
-              href={`#${item.toLowerCase()}`} 
-              className="block py-2 text-neutral-300 hover:text-white transition-colors text-sm uppercase tracking-wider"
+              href={`#${item.toLowerCase()}`}
+              className="block py-2 text-neutral-300 hover:text-yellow-300 transition-colors text-sm uppercase tracking-wider"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -97,5 +100,5 @@ export default function NavBar() {
         </motion.div>
       )}
     </div>
-  )
+  );
 }
