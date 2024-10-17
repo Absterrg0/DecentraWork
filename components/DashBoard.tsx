@@ -1,7 +1,8 @@
 'use client'
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, DollarSign, Calendar, Tags, ChevronDown, User, Briefcase, LogOut, Filter } from 'lucide-react';
+import { Search, DollarSign, Calendar, Tags, ChevronDown, User, Briefcase, LogOut, Filter, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +32,8 @@ import {
 } from "@/components/ui/card";
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-
+import { signOut, useSession } from 'next-auth/react';
+import ProfileCompletionModal from './ui/profile-modal';
 interface Project {
   id: number;
   title: string;
@@ -43,6 +44,15 @@ interface Project {
   experienceReq: string;
   createdAt: string;
   clientId: number;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  experience: string | null;
+  skills: string[] | null;
+  bio: string | null;
 }
 
 const experienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
@@ -56,21 +66,43 @@ export default function DashBoardComponent() {
   const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
   const [allSkills, setAllSkills] = useState<string[]>([]);
   const { data: session, status } = useSession();
+  const [isProfileComplete, setIsProfileComplete] = useState<boolean>(true);
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+    checkProfileCompletion();
+  }, [session]);
 
+  const handleSignOut = ()=>{
+    signOut();
+  }
+  const checkProfileCompletion = async () => {
+    if (status === "authenticated" && session?.user?.id) {
+      try {
+        const response = await axios.get(`/api/user/account/${session.user.id}`);
+        const userData: User = response.data;
+        const isComplete = Boolean(userData.experience && userData.skills && userData.skills.length > 0 && userData.bio);
+        console.log(isComplete);
+        setIsProfileComplete(isComplete);
+        if (!isComplete) {
+          setShowProfileModal(true);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    }
+  };
   const handleMyProfile = () => {
     if (status === "authenticated" && session?.user?.id) {
       router.push(`/user/${session.user.id}`);
     } else if (status === "unauthenticated") {
-      router.push('/login'); // Redirect to login page if not authenticated
+      router.push('/login');
     } else {
       console.error('User session is loading or user ID is not available');
-      // Optionally show a loading state or error message to the user
     }
   };
+
   const fetchProjects = async () => {
     try {
       const response = await axios.get('/api/projects');
@@ -103,11 +135,16 @@ export default function DashBoardComponent() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 text-white hover:text-yellow-400 transition-colors duration-300">
-                <Avatar className="h-8 w-8 ring-2 ring-yellow-400">
-                  <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <span>Account</span>
+                <div className="relative">
+                  <Avatar className="h-8 w-8 ring-2 ring-yellow-400">
+                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  {!isProfileComplete && (
+                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                  )}
+                </div>
+                <span>{session?.user.name}</span>
                 <ChevronDown size={16} />
               </Button>
             </DropdownMenuTrigger>
@@ -118,9 +155,15 @@ export default function DashBoardComponent() {
               </DropdownMenuItem>
               <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300">
                 <Briefcase className="mr-2 h-4 w-4" />
-                <span>My Projects</span>
+                <span>My Proposals</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300">
+              {!isProfileComplete && (
+                <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300" onClick={() => setShowProfileModal(true)}>
+                  <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
+                  <span>Complete Profile</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem className="text-white hover:bg-yellow-400 hover:text-black cursor-pointer transition-colors duration-300" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log Out</span>
               </DropdownMenuItem>
@@ -128,7 +171,6 @@ export default function DashBoardComponent() {
           </DropdownMenu>
         </div>
       </header>
-
       <main className="container mx-auto px-4 py-8">
         <motion.h2 
           className="text-5xl font-bold mb-12 text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-yellow-400 to-cyan-500"
@@ -275,6 +317,17 @@ export default function DashBoardComponent() {
           </div>
         </div>
       </main>
+      {showProfileModal && (
+        <ProfileCompletionModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          onComplete={() => {
+            setIsProfileComplete(true);
+            setShowProfileModal(false);
+            checkProfileCompletion(); // Re-check profile completion after modal is closed
+          }}
+        />
+      )}
     </div>
   );
 }

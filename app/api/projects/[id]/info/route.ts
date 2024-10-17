@@ -47,8 +47,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     // If project not found, return a 404 error
     if (!project) {
       return NextResponse.json(
-        { msg: 'Project not found' },
-        { status: 404 }
+        { project : {}}
       );
     }
 

@@ -11,7 +11,16 @@ export async function GET() {
         }, { status: 401 })
     }
     try {
+        const userId = parseInt(session.user.id)
+
         const response = await client.project.findMany({
+            where: {
+                applications: {
+                    none: {
+                        applicantId: userId
+                    }
+                }
+            },
             include: {
                 client: {
                     select: {
@@ -35,6 +44,7 @@ export async function GET() {
                 }
             }
         })
+
         return NextResponse.json(response)
     } catch (e) {
         console.error(e)

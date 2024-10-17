@@ -28,7 +28,7 @@ interface Project {
   title: string;
   description: string;
   budget: number;
-  timeExpected: string;
+  timeExpected: string | null;
   experienceReq: string;
   skillsRequired: string[];
   client: {
@@ -38,7 +38,7 @@ interface Project {
   };
 }
 
-export default function ProfileComponent() {
+export default function Component() {
   const { data: session } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -69,7 +69,7 @@ export default function ProfileComponent() {
   const fetchUserProjects = async (id: string) => {
     try {
       const { data } = await axios.get(`/api/projects/${id}/info`);
-      setProjects(Array.isArray(data.project) ? data.project : [data.project]);
+      setProjects(data.project || {});
     } catch (err) {
       console.error('Failed to load user projects:', err);
       setError('Failed to load user projects.');
@@ -207,7 +207,7 @@ export default function ProfileComponent() {
                       <Input
                         id="skills"
                         name="skills"
-                        value={editedUser?.skills.join(', ') || ''}
+                        value={editedUser?.skills?.join(', ') || ''}
                         onChange={(e) => setEditedUser(prev => prev ? { ...prev, skills: e.target.value.split(',').map(skill => skill.trim()) } : null)}
                         className="bg-gray-700 border-yellow-600 text-yellow-100 focus:border-yellow-400"
                       />
@@ -238,11 +238,15 @@ export default function ProfileComponent() {
                     <div>
                       <Label className="text-yellow-300">Skills</Label>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {user.skills.map((skill, index) => (
-                          <Badge key={index} variant="secondary" className="bg-yellow-700 text-yellow-100">
-                            {skill}
-                          </Badge>
-                        ))}
+                        {user.skills && user.skills.length > 0 ? (
+                          user.skills.map((skill, index) => (
+                            <Badge key={index} variant="secondary" className="bg-yellow-700 text-yellow-100">
+                              {skill}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-yellow-100">No skills specified</p>
+                        )}
                       </div>
                     </div>
                     <Button onClick={handleEdit} className="bg-yellow-600 hover:bg-yellow-700 text-yellow-100">
@@ -253,7 +257,16 @@ export default function ProfileComponent() {
               </TabsContent>
               <TabsContent value="projects">
                 <div className="space-y-4">
-                  {projects.length > 0 ? (
+                  {Object.keys(projects).length === 0 ? (
+                    <motion.p
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-center text-yellow-300 text-xl"
+                    >
+                      No projects created
+                    </motion.p>
+                  ) : (
                     projects.map((project) => (
                       <motion.div
                         key={project.id}
@@ -277,7 +290,7 @@ export default function ProfileComponent() {
                               </div>
                               <div className="flex items-center">
                                 <Calendar className="mr-2 h-5 w-5 text-yellow-400" />
-                                <span className="text-yellow-100">Time: {project.timeExpected}</span>
+                                <span className="text-yellow-100">Time: {project.timeExpected || 'Not specified'}</span>
                               </div>
                               <div className="flex items-center">
                                 <User className="mr-2 h-5 w-5 text-yellow-400" />
@@ -287,11 +300,15 @@ export default function ProfileComponent() {
                             <div className="mb-4">
                               <Label className="text-yellow-300">Required Skills</Label>
                               <div className="flex flex-wrap gap-2 mt-2">
-                                {project.skillsRequired.map((skill, index) => (
-                                  <Badge key={index} variant="secondary" className="bg-yellow-700 text-yellow-100">
-                                    {skill}
-                                  </Badge>
-                                ))}
+                                {project.skillsRequired && project.skillsRequired.length > 0 ? (
+                                  project.skillsRequired.map((skill, index) => (
+                                    <Badge key={index} variant="secondary" className="bg-yellow-700 text-yellow-100">
+                                      {skill}
+                                    </Badge>
+                                  ))
+                                ) : (
+                                  <p className="text-yellow-100">No specific skills required</p>
+                                )}
                               </div>
                             </div>
                             <div>
@@ -307,8 +324,6 @@ export default function ProfileComponent() {
                         </Card>
                       </motion.div>
                     ))
-                  ) : (
-                    <p className="text-center text-yellow-300">No projects found.</p>
                   )}
                 </div>
               </TabsContent>
