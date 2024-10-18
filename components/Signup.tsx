@@ -6,16 +6,20 @@ import { Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from '@/hooks/use-toast'
-import axios from 'axios'
+import { Toaster, toast } from 'react-hot-toast'
+import axios, { AxiosError } from 'axios'
 import { useRouter } from 'next/navigation'
 
+// Define the response data structure from API
+interface ApiResponse {
+  msg: string;
+}
+
 export default function SignupForm() {
-  const [name, setName] = useState('')  // Updated field
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
+  const [name, setName] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const router = useRouter()
 
   const handleLogin = () => {
@@ -27,32 +31,48 @@ export default function SignupForm() {
     setIsLoading(true)
 
     try {
-      // Make the API call to create the account
-      await axios.post('/api/user/account', { name, email, password })  // Updated field
-      setIsLoading(false)
+      const response = await axios.post<ApiResponse>('/api/user/account', { name, email, password });
 
-      // Show a success toast
-      toast({
-        title: "Account created!",
-        description: "You've successfully signed up.",
-      })
+      // Check for error message in response
+      if (response.data.msg) {
+        toast.error(response.data.msg); // Show error toast
+        setIsLoading(false);
+        return;
+      }
 
-      // Redirect to the home page after 3 seconds
+      setIsLoading(false);
+      toast.success("You've successfully signed up."); // Show success toast
+
       setTimeout(() => {
-        router.push('/onboarding') // Redirect to home
-      }, 3000)
+        router.push('/onboarding')
+      }, 2000);
     } catch (error) {
-      setIsLoading(false)
-      toast({
-        title: "Error",
-        description: "There was a problem creating your account.",
-        variant: "destructive",
-      })
+      setIsLoading(false);
+
+      // Handle the error as an AxiosError
+      const axiosError = error as AxiosError<ApiResponse>;
+
+      // Check if error has a specific message from the API
+      if (axiosError.response?.data?.msg) {
+        toast.error(axiosError.response.data.msg); // Show error toast
+      } else {
+        toast.error("There was a problem creating your account."); // Generic error toast
+      }
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-800 to-black p-4">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1F2833',
+            color: '#66FCF1',
+          },
+          duration: 3000,
+        }}
+      />
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -62,7 +82,7 @@ export default function SignupForm() {
         <h2 className="text-3xl font-bold text-center text-white mb-6">Create an Account</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-neutral-300">Name</Label>  {/* Updated field */}
+            <Label htmlFor="name" className="text-sm font-medium text-neutral-300">Name</Label>
             <Input
               id="name"
               type="text"

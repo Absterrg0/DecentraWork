@@ -99,19 +99,19 @@ export default function ApplyJobComponent() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
-        <Loader2 className="w-12 h-12 text-white animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-[#222629]">
+        <Loader2 className="w-12 h-12 text-[#66FCF1] animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      <div className="flex items-center justify-center min-h-screen bg-[#222629]">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center text-white flex items-center bg-red-600 p-4 rounded-lg shadow-lg"
+          className="text-center text-[#C5C6C7] flex items-center bg-red-600 p-4 rounded-lg shadow-lg"
         >
           <AlertCircle className="mr-2" />
           {error}
@@ -122,11 +122,11 @@ export default function ApplyJobComponent() {
 
   if (!project) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      <div className="flex items-center justify-center min-h-screen bg-[#222629]">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center text-white bg-indigo-600 p-4 rounded-lg shadow-lg"
+          className="text-center text-[#C5C6C7] bg-indigo-600 p-4 rounded-lg shadow-lg"
         >
           Project not found
         </motion.div>
@@ -139,13 +139,13 @@ export default function ApplyJobComponent() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-4"
+      className="min-h-screen bg-[#222629] flex items-center justify-center p-4"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="max-w-4xl w-full p-8 bg-gray-800 bg-opacity-80 rounded-xl shadow-2xl backdrop-blur-sm"
+        className="max-w-4xl w-full p-8 bg-gray-800 bg-opacity-70 rounded-xl shadow-2xl backdrop-blur-sm"
       >
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -153,7 +153,7 @@ export default function ApplyJobComponent() {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <Card className="mb-8 bg-gray-700 border-gray-600 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+            <CardHeader className="bg-gradient-to-r from-[#66FCF1] to-[#C5C6C7] text-gray-800">
               <CardTitle className="text-3xl font-bold">{project.title}</CardTitle>
               <CardDescription className="text-gray-200 text-lg">
                 Posted by {project.client.name}
@@ -190,7 +190,7 @@ export default function ApplyJobComponent() {
         >
           <Card className="bg-gray-700 border-gray-600">
             <CardHeader>
-              <CardTitle className="text-2xl text-white">
+              <CardTitle className="text-2xl text-[#66FCF1]">
                 {hasApplied ? 'Application Status' : 'Apply for this Job'}
               </CardTitle>
             </CardHeader>
@@ -204,7 +204,7 @@ export default function ApplyJobComponent() {
                   <CheckCircle className="w-16 h-16 mb-4" />
                   <p className="text-xl font-semibold">You have already applied for this job!</p>
                   <Button
-                    className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white transition duration-300 ease-in-out"
+                    className="mt-6 bg-[#66FCF1] hover:bg-[#C5C6C7] text-gray-800 transition duration-300 ease-in-out"
                     onClick={() => router.push('/dashboard')}
                   >
                     View Your Applications
@@ -213,13 +213,13 @@ export default function ApplyJobComponent() {
               ) : (
                 <form onSubmit={handleSubmit}>
                   <div className="mb-6">
-                    <Label htmlFor="coverLetter" className="text-lg text-indigo-300 mb-2 block">Cover Letter</Label>
+                    <Label htmlFor="coverLetter" className="text-lg text-[#66FCF1] mb-2 block">Cover Letter</Label>
                     <Textarea
                       id="coverLetter"
                       value={coverLetter}
                       onChange={(e) => setCoverLetter(e.target.value)}
                       placeholder="Explain why you're a great fit for this job..."
-                      className="mt-1 bg-gray-600 text-white border-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 text-lg p-4"
+                      className="mt-1 bg-gray-600 text-white border-gray-500 focus:ring-2 focus:ring-[#66FCF1] focus:border-transparent transition-all duration-300 text-lg p-4"
                       rows={8}
                       required
                     />
@@ -243,7 +243,7 @@ export default function ApplyJobComponent() {
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition duration-300 ease-in-out font-semibold text-lg py-3 rounded-lg shadow-lg"
+                      className="w-full bg-gradient-to-r from-[#66FCF1] to-[#C5C6C7] text-gray-800 hover:from-[#5FB6B1] hover:to-[#B7B7B7] transition duration-300 ease-in-out font-semibold text-lg py-3 rounded-lg shadow-lg"
                     >
                       Submit Application
                     </Button>

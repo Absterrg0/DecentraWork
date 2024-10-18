@@ -109,7 +109,7 @@ export default function UserProposalsComponent() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-900 to-amber-900 p-4">
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-900 to-green-900 p-4">
         <div className="text-center p-8 bg-gray-800 rounded-xl shadow-lg max-w-md">
           <p className="text-red-400 mb-4">{error}</p>
           <Button onClick={() => session?.user?.id && fetchApplications(session.user.id)} className="bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-200">
@@ -121,7 +121,7 @@ export default function UserProposalsComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-amber-900 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-emerald-700 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <h1 className="text-4xl font-bold text-amber-100 mb-8">Your Proposals</h1>
         

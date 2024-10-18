@@ -38,46 +38,48 @@ export default function ProfileCompletionModal({ isOpen, onClose, onComplete }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-black bg-opacity-90 text-white border border-yellow-400">
+      <DialogContent className="sm:max-w-[425px] bg-[#222629] bg-opacity-90 text-white border border-[#86C232]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-yellow-500">Complete Your Profile</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#86C232] to-[#61892F]">
+            Complete Your Profile
+          </DialogTitle>
           <DialogDescription className="text-gray-300">
             Please provide the following information to complete your profile.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="experience" className="block text-sm font-medium text-yellow-400">Experience</label>
+            <label htmlFor="experience" className="block text-sm font-medium text-[#86C232]">Experience</label>
             <Input
               id="experience"
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
-              className="w-full bg-black bg-opacity-50 border-yellow-400 focus:border-pink-500 text-white placeholder-gray-400"
+              className="w-full bg-[#474B4F] bg-opacity-50 border-[#86C232] focus:border-[#61892F] text-white placeholder-gray-400"
               placeholder="e.g., 5 years in web development"
             />
           </div>
           <div>
-            <label htmlFor="skills" className="block text-sm font-medium text-yellow-400">Skills (comma-separated)</label>
+            <label htmlFor="skills" className="block text-sm font-medium text-[#86C232]">Skills (comma-separated)</label>
             <Input
               id="skills"
               value={skills}
               onChange={(e) => setSkills(e.target.value)}
-              className="w-full bg-black bg-opacity-50 border-yellow-400 focus:border-pink-500 text-white placeholder-gray-400"
+              className="w-full bg-[#474B4F] bg-opacity-50 border-[#86C232] focus:border-[#61892F] text-white placeholder-gray-400"
               placeholder="e.g., React, Node.js, TypeScript"
             />
           </div>
           <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-yellow-400">Bio</label>
+            <label htmlFor="bio" className="block text-sm font-medium text-[#86C232]">Bio</label>
             <Textarea
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full bg-black bg-opacity-50 border-yellow-400 focus:border-pink-500 text-white placeholder-gray-400"
+              className="w-full bg-[#474B4F] bg-opacity-50 border-[#86C232] focus:border-[#61892F] text-white placeholder-gray-400"
               placeholder="Tell us about yourself..."
             />
           </div>
           <DialogFooter>
-            <Button type="submit" className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white transition-all duration-300 transform hover:scale-105">
+            <Button type="submit" className="w-full bg-gradient-to-r from-[#86C232] to-[#61892F] hover:from-[#86C232] hover:to-[#61892F] text-white transition-all duration-300 transform hover:scale-105">
               Complete Profile
             </Button>
           </DialogFooter>

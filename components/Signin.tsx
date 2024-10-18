@@ -6,18 +6,16 @@ import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { motion } from "framer-motion"
 import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react'
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from '@/hooks/use-toast'
+import { Toaster, toast } from 'react-hot-toast' // Import Toaster and toast
 
 export default function SigninForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -31,20 +29,13 @@ export default function SigninForm() {
       })
 
       if (result?.error) {
-        toast({
-          title: "Error",
-          description: result.error,
-          variant: "destructive",
-        })
+        toast.error(result.error) // Show error toast
       } else {
+        toast.success("You have successfully signed in.") // Show success toast
         router.push('/dashboard')
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      })
+      toast.error("An unexpected error occurred. Please try again.") // Show generic error toast
     } finally {
       setIsLoading(false)
     }
@@ -52,6 +43,16 @@ export default function SigninForm() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-zinc-900">
+      <Toaster // Add Toaster here
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1F2833',
+            color: '#66FCF1',
+          },
+          duration: 3000,
+        }}
+      />
       <motion.div 
         className="flex-1 flex items-center justify-center p-10"
         initial={{ opacity: 0, x: -50 }}
