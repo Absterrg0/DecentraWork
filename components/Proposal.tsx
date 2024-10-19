@@ -1,95 +1,160 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useSession } from 'next-auth/react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Import your custom UI components
-import { Button } from './ui/button';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import axios from 'axios';
+import { getSession } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from "@/components/ui/skeleton";
+import { FaBriefcase, FaClock, FaDollarSign, FaEthereum, FaTools } from 'react-icons/fa';
+import { SiSolana } from 'react-icons/si';
 
-interface Application {
+interface ProjectDetails {
   id: number;
-  coverLetter: string;
-  createdAt: string;
-  applicant: {
-    id: number;
-    name: string;
-    email: string;
-  };
+  title: string;
+  description: string;
+  budget: number;
+  timeExpected: string;
+  experienceReq: string;
+  skillsRequired: string[];
 }
 
-export default function ProposalComponent() {
-  const { data: session } = useSession();
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { id } = useParams();
+const PaymentPage = () => {
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { id } = useParams();
+
+  const handleSolana = () => {
+    router.push(`/projects/${id}/payments/solana`);
+  };
+
+  const handleEth = () => {
+    router.push(`/projects/${id}/payments/ethereum`);
+  };
+
+  const fetchProjectDetails = async () => {
+    try {
+      const response = await axios.get(`/api/projects/${id}/info`);
+      if (response.data.project && response.data.project.length > 0) {
+        setProjectDetails(response.data.project[0]);
+      } else {
+        console.error('Project not found');
+      }
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (id) {
-      fetchApplications();
+      fetchProjectDetails();
     }
   }, [id]);
 
-  const fetchApplications = async () => {
-    try {
-      const { data } = await axios.get(`/api/projects/${id}/applications`);
-      setApplications(data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to load applications.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-[#222629]">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-[#86C232] text-2xl font-light"
+        >
+          <Skeleton className="w-[300px] h-[20px] bg-[#2F3439]" />
+        </motion.div>
+      </div>
+    );
+  }
 
-  const handleChoose = async (applicationId: number) => {
-    try {
-      await axios.post(`/api/applications/choose`, { applicationId });
-      alert('Applicant chosen successfully!');
-    } catch (error) {
-      alert('Failed to choose applicant. Please try again.');
-    }
-  };
-
-  const handleViewProfile = (applicantId: number) => {
-    router.push(`/user/${applicantId}/view`); // Redirect to the applicant's profile page
-  };
-
-  if (isLoading) return <div className="text-center text-gray-400">Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
-  if (applications.length === 0) return <div className="text-center">No applications found.</div>;
+  if (!projectDetails) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-[#222629]">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center text-[#86C232] text-xl"
+        >
+          Project not found.
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <h1 className="text-4xl mb-6 text-yellow-400">Applications for the Project</h1>
-      <div className="space-y-4 w-full max-w-3xl">
-        {applications.map((application) => (
-          <Card key={application.id} className="bg-gray-800 border-gray-700 shadow-lg transition-transform hover:scale-105">
-            <CardHeader>
-              <CardTitle className="text-xl">{application.applicant.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-2 text-gray-300">Email: {application.applicant.email}</p>
-              <p className="mb-2 text-gray-300">Cover Letter:</p>
-              <p className="text-gray-200">{application.coverLetter}</p>
-              <div className="mt-4 flex space-x-4">
-                <Button 
-                  onClick={() => handleChoose(application.id)} 
-                  className="bg-yellow-500 hover:bg-yellow-600 text-gray-900">
-                  Choose
-                </Button>
-                <Button 
-                  onClick={() => handleViewProfile(application.applicant.id)} 
-                  className="bg-blue-500 hover:bg-blue-600 text-gray-900">
-                  View Profile
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-[#222629] to-[#2F3439] text-[#C5C6C7]">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-3xl w-full mb-8"
+      >
+        <Card className="bg-[#2F3439] border-[#86C232] border-opacity-50 shadow-lg mb-4">
+          <CardHeader>
+            <CardTitle className="text-xl text-[#86C232]">{projectDetails.title}</CardTitle>
+            <p className="text-[#C5C6C7]">{projectDetails.description}</p>
+          </CardHeader>
+          <CardContent>
+            <motion.p className="mb-3 flex items-center text-[#C5C6C7]" >
+              <FaDollarSign className="mr-3 text-[#86C232]" /> Budget: 
+              <span className="ml-2 text-[#86C232] font-semibold">${projectDetails.budget}</span>
+            </motion.p>
+            <motion.p className="mb-3 flex items-center text-[#C5C6C7]" >
+              <FaClock className="mr-3 text-[#86C232]" /> Time Expected: 
+              <span className="ml-2 text-[#86C232] font-semibold">{projectDetails.timeExpected}</span>
+            </motion.p>
+            <motion.p className="mb-3 flex items-center text-[#C5C6C7]" >
+              <FaBriefcase className="mr-3 text-[#86C232]" /> Experience Required: 
+              <span className="ml-2 text-[#86C232] font-semibold">{projectDetails.experienceReq}</span>
+            </motion.p>
+            <motion.p className="mb-3 flex items-center text-[#C5C6C7]" >
+              <FaTools className="mr-3 text-[#86C232]" /> Skills Required: 
+              <span className="ml-2 text-[#86C232] font-semibold">{projectDetails.skillsRequired.join(', ')}</span>
+            </motion.p>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-4xl mb-6 text-[#86C232]"
+      >
+        Payment Options
+      </motion.h1>
+
+      <motion.div  className="w-full max-w-3xl mb-6">
+        <Alert className="bg-[#2F3439] border-[#86C232] border-opacity-50 text-[#C5C6C7]">
+          <AlertTitle className="font-semibold text-lg text-[#86C232]">Platform Fees</AlertTitle>
+          <AlertDescription className="text-sm">
+            A 5% platform fee will be charged, and the money will be transferred to a safe bank account used as escrow.
+          </AlertDescription>
+        </Alert>
+      </motion.div>
+
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl"
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button onClick={handleSolana} className="w-full bg-[#61892F] hover:bg-[#86C232] text-[#222629] font-bold py-4 px-6 rounded-lg flex items-center justify-center shadow-lg transition-colors duration-200">
+            <SiSolana className="mr-3" size={28} /> Pay with Solana
+          </Button>
+        </motion.div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button onClick={handleEth} className="w-full bg-[#61892F] hover:bg-[#86C232] text-[#222629] font-bold py-4 px-6 rounded-lg flex items-center justify-center shadow-lg transition-colors duration-200">
+            <FaEthereum className="mr-3" size={28} /> Pay with Ethereum
+          </Button>
+        </motion.div>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default PaymentPage;

@@ -92,9 +92,7 @@ export default function DashBoardComponent() {
         const userData: User = response.data;
         const isComplete = Boolean(userData.experience && userData.skills && userData.skills.length > 0 && userData.bio);
         setIsProfileComplete(isComplete);
-        if (!isComplete) {
-          setShowProfileModal(true);
-        }
+
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -213,7 +211,7 @@ export default function DashBoardComponent() {
           className="w-full lg:w-1/4"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ ease:'easeIn'}}
         >
           <Card className="bg-[#2F3439] border-[#86C232] shadow-lg">
             <CardHeader>

@@ -33,31 +33,19 @@ export default function SignupForm() {
     try {
       const response = await axios.post<ApiResponse>('/api/user/account', { name, email, password });
 
-      // Check for error message in response
-      if (response.data.msg) {
-        toast.error(response.data.msg); // Show error toast
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(false);
-      toast.success("You've successfully signed up."); // Show success toast
+      // Show success toast on successful signup
+      toast.success("You've successfully signed up."); 
 
       setTimeout(() => {
         router.push('/onboarding')
-      }, 2000);
+      }, 1000);
     } catch (error) {
-      setIsLoading(false);
-
-      // Handle the error as an AxiosError
       const axiosError = error as AxiosError<ApiResponse>;
+      const errorMessage = axiosError.response?.data?.msg || "There was a problem creating your account.";
 
-      // Check if error has a specific message from the API
-      if (axiosError.response?.data?.msg) {
-        toast.error(axiosError.response.data.msg); // Show error toast
-      } else {
-        toast.error("There was a problem creating your account."); // Generic error toast
-      }
+      toast.error(errorMessage); // Show error toast
+    } finally {
+      setIsLoading(false); // Ensure loading state is reset
     }
   }
 

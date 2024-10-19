@@ -26,6 +26,8 @@ export async function GET(req: NextRequest,{params}:{params:{id:string}}) {
         experience: true,
         skills: true,
         bio: true,
+        walletAddressETH:true,
+        walletAddressSOL:true
       }, // Select specific fields to return (excluding sensitive data like password)
     });
 
@@ -62,6 +64,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         bio: body.bio,
         experience: body.experience,
         skills: body.skills,
+        walletAddressETH:body.walletAddressETH,
+        walletAddressSOL:body.walletAddressSOL
         // Add any other fields that can be updated
       }
     });

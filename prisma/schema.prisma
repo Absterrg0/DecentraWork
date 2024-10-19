@@ -23,12 +23,14 @@ model User {
   email             String    @unique
   password          String
   experience        String?
-  skills            String[]// Optional array of skills, can be null
+  skills            String[]  // Optional array of skills, can be null
   bio               String?
   projectsCreated   Project[] @relation("ClientProjects")
   applications      Application[]
+  projectsAssigned  Project[] @relation("AssignedApplicant")
+  walletAddressSOL  String    @default("")
+  walletAddressETH  String    @default("")
 }
-
 
 model Project {
   id                Int        @id @default(autoincrement())
@@ -42,6 +44,8 @@ model Project {
   client            User       @relation("ClientProjects", fields: [clientId], references: [id])
   clientId          Int
   applications      Application[]
+  assigned          User?      @relation("AssignedApplicant", fields: [assignedId], references: [id]) // Nullable initially
+  assignedId        Int?       // The foreign key field to store the assigned applicant's ID
 }
 
 model Application {

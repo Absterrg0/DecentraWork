@@ -7,6 +7,8 @@ interface UserBody {
   name: string;
   email: string;
   password: string;
+  solanaAddress?: string; // Optional
+  ethereumAddress?: string; // Optional
 }
 
 export async function POST(req: NextRequest) {
@@ -36,12 +38,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ msg: "Error creating account, try again" }, { status: 500 });
     }
 
-    // Create the user with an empty skills array initially
+    // Create the user with wallet addresses and empty skills array initially
     const newUser = await client.user.create({
       data: {
         name: body.name,
         email: body.email,
         password: hashedPassword,
+        walletAddressSOL: body.solanaAddress || '', // Store as empty string if not provided
+        walletAddressETH: body.ethereumAddress || '', // Store as empty string if not provided
         skills: [], // Empty skills array initially
       },
     });

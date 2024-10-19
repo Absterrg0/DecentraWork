@@ -1,15 +1,12 @@
-'use client'
-
+'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Search, ArrowRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Project {
   title: string;
@@ -22,7 +19,6 @@ interface Project {
 interface Application {
   id: string;
   project: Project;
-  coverLetter: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
 }
@@ -40,6 +36,7 @@ export default function UserProposalsComponent() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   const fetchApplications = useCallback(async (userId: string) => {
     try {
@@ -92,27 +89,45 @@ export default function UserProposalsComponent() {
 
   const getStatusColor = (status: Application['status']): string => {
     switch (status) {
-      case 'pending': return 'bg-yellow-600 text-yellow-100';
-      case 'accepted': return 'bg-green-600 text-green-100';
-      case 'rejected': return 'bg-red-600 text-red-100';
-      default: return 'bg-gray-600 text-gray-100';
+      case 'pending': return 'text-[#FFA500]';
+      case 'accepted': return 'text-[#4CAF50]';
+      case 'rejected': return 'text-[#F44336]';
+      default: return 'text-gray-100';
     }
+  };
+
+  const renderSkillsBadges = (skills: string[]) => {
+    return skills.map(skill => (
+      <span key={skill} className="inline-block bg-[#86C232] text-[#1A1C1E] text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+        {skill}
+      </span>
+    ));
+  };
+
+  const handleViewCoverLetter = (application: Application) => {
+    setSelectedApplication(application);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedApplication(null);
   };
 
   if (status === 'loading' || loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
+      <div className="flex justify-center items-center min-h-screen bg-[#222629]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#86C232]" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-gray-900 to-green-900 p-4">
-        <div className="text-center p-8 bg-gray-800 rounded-xl shadow-lg max-w-md">
+      <div className="flex flex-col items-center justify-center h-screen bg-[#222629] p-4">
+        <div className="text-center p-8 bg-[#2F3439] rounded-xl shadow-lg max-w-md">
           <p className="text-red-400 mb-4">{error}</p>
-          <Button onClick={() => session?.user?.id && fetchApplications(session.user.id)} className="bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-200">
+          <Button onClick={() => session?.user?.id && fetchApplications(session.user.id)} className="bg-[#86C232] hover:bg-[#61892F] text-white transition-colors duration-200">
             Try Again
           </Button>
         </div>
@@ -121,150 +136,100 @@ export default function UserProposalsComponent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-emerald-700 p-8">
+    <div className="min-h-screen bg-gradient-to-b from-[#222629] to-[#2F3439] p-8 text-[#C5C6C7]">
       <div className="max-w-7xl mx-auto space-y-8">
-        <h1 className="text-4xl font-bold text-amber-100 mb-8">Your Proposals</h1>
+        <h1 className="text-4xl font-bold text-[#86C232] mb-8">Your Proposals</h1>
         
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-zinc-800 p-6 rounded-xl shadow-lg">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#2F3439] p-6 rounded-xl shadow-lg">
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Search className="text-amber-500" />
+            <Search className="text-[#86C232]" />
             <Input
               placeholder="Search projects..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full md:w-64 bg-gray-700 border-gray-600 text-amber-100 focus:border-amber-500 focus:ring-amber-500"
+              className="w-full md:w-64 bg-[#2F3439] border-[#86C232] text-[#C5C6C7] focus:border-[#86C232] focus:ring-[#86C232]"
             />
           </div>
           <div className="flex items-center gap-4 w-full md:w-auto">
             <Select value={filterStatus} onValueChange={(value: FilterStatus) => setFilterStatus(value)}>
-              <SelectTrigger className="w-full md:w-40 bg-gray-700 border-gray-600 text-amber-100">
+              <SelectTrigger className="w-full md:w-40 bg-[#2F3439] border-[#86C232] text-[#C5C6C7]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="all" className="text-amber-100">All Status</SelectItem>
-                <SelectItem value="pending" className="text-amber-100">Pending</SelectItem>
-                <SelectItem value="accepted" className="text-amber-100">Accepted</SelectItem>
-                <SelectItem value="rejected" className="text-amber-100">Rejected</SelectItem>
+              <SelectContent className="bg-[#2F3439] border-[#86C232]">
+                <SelectItem value="all" className="text-[#C5C6C7]">All Status</SelectItem>
+                <SelectItem value="pending" className="text-[#C5C6C7]">Pending</SelectItem>
+                <SelectItem value="accepted" className="text-[#C5C6C7]">Accepted</SelectItem>
+                <SelectItem value="rejected" className="text-[#C5C6C7]">Rejected</SelectItem>
               </SelectContent>
             </Select>
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="w-full md:w-40 bg-gray-700 border-gray-600 text-amber-100">
+              <SelectTrigger className="w-full md:w-40 bg-[#2F3439] border-[#86C232] text-[#C5C6C7]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="date" className="text-amber-100">Date</SelectItem>
-                <SelectItem value="budget" className="text-amber-100">Budget</SelectItem>
+              <SelectContent className="bg-[#2F3439] border-[#86C232]">
+                <SelectItem value="date" className="text-[#C5C6C7]">Date</SelectItem>
+                <SelectItem value="budget" className="text-[#C5C6C7]">Budget</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         {filteredApplications.length === 0 ? (
-          <div className="text-center p-12 bg-gray-800 rounded-xl shadow-lg">
-            <p className="text-amber-100 text-xl">No applications found.</p>
+          <div className="text-center p-12 bg-[#2F3439] rounded-xl shadow-lg">
+            <p className="text-[#86C232] text-xl">No applications found.</p>
           </div>
         ) : (
-          <AnimatePresence>
-            <motion.div 
-              className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {filteredApplications.map((application) => (
-                <motion.div
-                  key={application.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Card className="h-full flex flex-col bg-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-200 border-amber-700">
-                    <CardHeader className="bg-gradient-to-r from-amber-700 to-amber-600 text-amber-100 rounded-t-xl">
-                      <CardTitle className="text-2xl">{application.project.title}</CardTitle>
-                      <CardDescription className="text-amber-200 opacity-90">
-                        {application.project.description.slice(0, 100)}...
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-grow p-6 text-amber-100">
-                      <p><strong>Budget:</strong> ${application.project.budget}</p>
-                      <p><strong>Time Expected:</strong> {application.project.timeExpected}</p>
-                      <div className="mt-4">
-                        <strong>Skills Required:</strong>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {application.project.skillsRequired.map((skill, index) => (
-                            <Badge key={index} className="bg-amber-800 text-amber-100">{skill}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-between items-center p-6 bg-gray-700 rounded-b-xl">
-                      <Badge className={`${getStatusColor(application.status)} text-sm font-medium px-3 py-1`}>
-                        {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                      </Badge>
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => setSelectedApplication(application)}
-                        className="text-amber-400 border-amber-400 hover:bg-amber-900"
-                      >
-                        View Details
+          <div className="overflow-x-auto bg-[#2F3439] rounded-lg shadow-lg">
+            <table className="min-w-full divide-y divide-[#86C232]">
+              <thead className="bg-[#1A1C1E]">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#C5C6C7] uppercase tracking-wider">Project Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#C5C6C7] uppercase tracking-wider">Skills Required</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#C5C6C7] uppercase tracking-wider">Budget</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#C5C6C7] uppercase tracking-wider">Applied On</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#C5C6C7] uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-[#C5C6C7] uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-[#2F3439] divide-y divide-[#86C232]">
+                {filteredApplications.map(application => (
+                  <tr key={application.id} className="hover:bg-[#1A1C1E] transition duration-150">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">{application.project.title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">{renderSkillsBadges(application.project.skillsRequired)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">${application.project.budget}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">{new Date(application.createdAt).toLocaleDateString()}</td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${getStatusColor(application.status)}`}>
+                      {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <Button onClick={() => handleViewCoverLetter(application)} className="bg-[#86C232] hover:bg-[#61892F] text-white transition-colors duration-200">
+                        View Cover Letter
                       </Button>
-                    </CardFooter>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </AnimatePresence>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
-<AnimatePresence>
-  {selectedApplication && (
-    <Dialog open={!!selectedApplication} onOpenChange={() => setSelectedApplication(null)}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3 }}
-      >
-        <DialogContent className="bg-gray-900 border-amber-600 max-w-4xl shadow-lg rounded-lg">
-          <DialogHeader className="bg-gradient-to-r from-amber-800 to-amber-600 text-amber-200 p-6 rounded-t-lg">
-            <DialogTitle className="text-3xl font-bold">{selectedApplication?.project.title}</DialogTitle>
-            <DialogDescription className="text-amber-300 opacity-80">{selectedApplication?.project.description}</DialogDescription>
-          </DialogHeader>
-          <div className="p-6 space-y-6 text-amber-100">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <p><strong>Budget:</strong> ${selectedApplication?.project.budget}</p>
-                <p><strong>Time Expected:</strong> {selectedApplication?.project.timeExpected}</p>
-                <p>
-                  <strong>Status:</strong> 
-                  <span className={`${getStatusColor(selectedApplication?.status || 'pending')} px-2 py-1 rounded text-sm`}>
-                    {selectedApplication?.status.charAt(0).toUpperCase() + selectedApplication?.status.slice(1)}
-                  </span>
-                </p>
-              </div>
-              <div className="space-y-2">
-                <strong>Skills Required:</strong>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {selectedApplication?.project.skillsRequired.map((skill, index) => (
-                    <Badge key={index} className="bg-amber-800 text-amber-100">{skill}</Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="mt-6">
-              <strong className="text-xl mb-2 block">Cover Letter</strong>
-              <div className="bg-gray-800 p-4 rounded-lg shadow-inner text-amber-100 max-h-60 overflow-y-auto">
-                <p className="whitespace-pre-wrap">{selectedApplication?.coverLetter}</p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </motion.div>
-    </Dialog>
-  )}
-</AnimatePresence>
-
+        <AnimatePresence>
+          {isDialogOpen && selectedApplication && (
+            <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
+              <DialogContent className="max-w-2xl bg-[#2F3439] rounded-lg shadow-lg">
+                <DialogHeader>
+                  <DialogTitle className="text-[#86C232]">Cover Letter</DialogTitle>
+                  <DialogDescription className="text-[#C5C6C7]">{selectedApplication.project.description}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button onClick={closeDialog} className="bg-[#86C232] hover:bg-[#61892F] text-white transition-colors duration-200">
+                    Close
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

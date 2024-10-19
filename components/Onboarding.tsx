@@ -9,6 +9,9 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { ChevronRight, User } from 'lucide-react'
 import axios from 'axios'
+import { useSession } from 'next-auth/react'
+import { Toaster, toast } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 const skills = ['JavaScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'HTML/CSS', 'SQL', 'Git', 'Docker']
 const experienceLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert']
@@ -27,21 +30,60 @@ const staggerChildren: Variants = {
 }
 
 export default function OnboardingComponent() {
+  const { data: session } = useSession()
+  
   const [bio, setBio] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [experience, setExperience] = useState('')
+  const [solanaAddress, setSolanaAddress] = useState('')
+  const [ethereumAddress, setEthereumAddress] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Ensure session is valid
+  if (!session || !session.user) {
+    return null
+  } 
+  const router = useRouter();
 
   const handleComplete = async () => {
-    const response = await axios.put('/api/user/account', {
-      bio,
-      skills: selectedSkills,
-      experience
-    })
-    console.log(response)
+    setIsLoading(true)
+
+    try {
+      const response = await axios.put(`/api/user/account/${session.user.id}`, {
+        bio,
+        skills: selectedSkills,
+        experience,
+        solanaAddress,
+        ethereumAddress
+      })
+
+      if (response.data.msg) {
+        toast.success(response.data.msg) // Success toast
+      } else {
+        toast.success("Profile updated successfully.")
+        router.push('/dashboard')
+      }
+
+    } catch (error) {
+      console.error(error)
+      toast.error("There was an error updating your profile.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-[#0B0C10] to-[#1F2833] text-[#C5C6C7]">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            background: '#1F2833',
+            color: '#66FCF1',
+          },
+          duration: 3000,
+        }}
+      />
       <motion.div
         className="p-4 max-w-4xl mx-auto w-full"
         initial="initial"
@@ -112,13 +154,34 @@ export default function OnboardingComponent() {
                 ))}
               </div>
             </motion.div>
+
+            <motion.div variants={fadeIn}>
+              <Label className="text-xl font-semibold mb-2 block text-[#66FCF1]">Solana Wallet Address</Label>
+              <Textarea
+                placeholder="Enter your Solana wallet address..."
+                value={solanaAddress}
+                onChange={(e) => setSolanaAddress(e.target.value)}
+                className="w-full h-12 bg-[#0B0C10] text-[#C5C6C7] border-[#66FCF1]/20 focus:border-[#66FCF1] focus:ring-[#66FCF1] placeholder-[#C5C6C7]/50 rounded-md"
+              />
+            </motion.div>
+
+            <motion.div variants={fadeIn}>
+              <Label className="text-xl font-semibold mb-2 block text-[#66FCF1]">Ethereum Wallet Address</Label>
+              <Textarea
+                placeholder="Enter your Ethereum wallet address..."
+                value={ethereumAddress}
+                onChange={(e) => setEthereumAddress(e.target.value)}
+                className="w-full h-12 bg-[#0B0C10] text-[#C5C6C7] border-[#66FCF1]/20 focus:border-[#66FCF1] focus:ring-[#66FCF1] placeholder-[#C5C6C7]/50 rounded-md"
+              />
+            </motion.div>
           </CardContent>
           <CardFooter className="flex justify-end border-t border-[#66FCF1]/20 pt-6">
             <Button 
               onClick={handleComplete} 
               className="bg-[#66FCF1] text-[#0B0C10] hover:bg-[#45A29E] transition duration-300 ease-in-out rounded-full shadow-lg transform hover:scale-105"
+              disabled={isLoading}
             >
-              Complete Profile <ChevronRight className="ml-2 h-4 w-4" />
+              {isLoading ? 'Loading...' : 'Complete Profile'} <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
         </Card>
