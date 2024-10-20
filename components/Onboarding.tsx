@@ -31,7 +31,6 @@ const staggerChildren: Variants = {
 
 export default function OnboardingComponent() {
   const { data: session } = useSession()
-  
   const [bio, setBio] = useState('')
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [experience, setExperience] = useState('')
@@ -39,17 +38,13 @@ export default function OnboardingComponent() {
   const [ethereumAddress, setEthereumAddress] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  // Ensure session is valid
-  if (!session || !session.user) {
-    return null
-  } 
   const router = useRouter();
 
   const handleComplete = async () => {
     setIsLoading(true)
 
     try {
-      const response = await axios.put(`/api/user/account/${session.user.id}`, {
+      const response = await axios.put(`/api/user/account/${session?.user.id}`, {
         bio,
         skills: selectedSkills,
         experience,

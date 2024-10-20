@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import '@solana/wallet-adapter-react-ui/styles.css';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import axios from 'axios';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 
 // Type for the project details
 interface ProjectDetails {
@@ -26,22 +26,27 @@ const SolanaComponent: React.FC = () => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [applicantName, setApplicantName] = useState<string | null>(null); // State for applicant's name
   const escrowId = "6mxD8MFakTGewgamvnA9MfC4fNBiZavwfbCCzccgwKYm"; // Escrow public key
   const connection = new Connection("https://api.devnet.solana.com", "confirmed");
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
+  const router = useRouter(); // Initialize router for navigation
+  const searchParams = useSearchParams();
+  const applicantId = searchParams.get('applicantId');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const projectResponse = await axios.get(`/api/projects/${id}/info`);
-        if (projectResponse.data.project && projectResponse.data.project.length > 0) {
-          setProjectDetails(projectResponse.data.project[0]);
-        } else {
-          console.error('Project not found');
+        setProjectDetails(projectResponse.data.project);
+        fetchLatestSolPrice();
+
+        // Fetch applicant's name using applicantId
+        if (applicantId) {
+          const applicantResponse = await axios.get(`/api/applicants/${applicantId}`);
+          setApplicantName(applicantResponse.data.name); // Assuming the API returns the applicant's name
         }
-        const latestSolPrice = await fetchLatestSolPrice();
-        setSolPrice(latestSolPrice);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -52,18 +57,13 @@ const SolanaComponent: React.FC = () => {
     if (id) {
       fetchData();
     }
+  }, [id, applicantId]);
 
-    const interval = setInterval(() => {
-      fetchLatestSolPrice().then(setSolPrice).catch(console.error);
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [id]);
-
-  const fetchLatestSolPrice = async (): Promise<number> => {
+  const fetchLatestSolPrice = async () => {
     try {
-      const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-      return response.data.solana.usd; // Get the SOL price in USD
+      const response = await axios.get('/api/price/solana');
+      const value = response.data;
+      setSolPrice(value.price);
     } catch (error) {
       console.error('Error fetching SOL price:', error);
       return 30; // Fallback value in case of an error
@@ -89,9 +89,13 @@ const SolanaComponent: React.FC = () => {
           })
         );
 
+        transaction.feePayer = wallet.publicKey;
         const signature = await wallet.sendTransaction(transaction, connection);
         await connection.confirmTransaction(signature, 'processed');
         setTransactionComplete(true);
+        await axios.post('/user/account/assign',{applicantId,id})
+        router.push(`/projects/${id}/assign/?applicantId=${applicantId}`)
+
       } catch (error) {
         console.error('Transaction failed', error);
         alert('Transaction failed. Please try again.');
@@ -108,12 +112,17 @@ const SolanaComponent: React.FC = () => {
       return (
         <div className="mb-6">
           <p className="text-sm text-gray-400 mb-1">
-            Amount being transferred(Includes 5% platform fee): <span className="font-bold text-amber-400">{fixedAmount.toFixed(6)} SOL</span>
+            Amount being transferred (Includes 5% platform fee): <span className="font-bold text-amber-400">{fixedAmount.toFixed(6)} SOL</span>
           </p>
         </div>
       );
     }
     return null;
+  };
+
+  const handleContactFreelancer = () => {
+    // Implement the logic for contacting the freelancer, e.g., open a chat or redirect to a contact page
+    alert(`Contact ${applicantName}`); // Placeholder for contact logic
   };
 
   if (isLoading) {
@@ -131,6 +140,24 @@ const SolanaComponent: React.FC = () => {
       </div>
       <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl border border-gray-700">
         <h2 className="text-3xl font-bold text-center mb-8 text-blue-400">Secure Escrow Payment</h2>
+
+        {transactionComplete && (
+          <motion.div
+            className="mt-4 flex flex-col items-center justify-center text-green-400 font-semibold"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <CheckCircle size={20} className="mr-2" />
+            <p>{applicantName} has been successfully assigned to this project!</p>
+            <button
+              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded"
+              onClick={handleContactFreelancer}
+            >
+              Contact Freelancer
+            </button>
+          </motion.div>
+        )}
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex flex-col items-center">
@@ -191,18 +218,6 @@ const SolanaComponent: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
           >
             Transaction in progress...
-          </motion.div>
-        )}
-
-        {transactionComplete && (
-          <motion.div
-            className="mt-4 flex items-center justify-center text-green-400 font-semibold"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
-            <CheckCircle size={20} className="mr-2" />
-            Funds have been successfully transferred!
           </motion.div>
         )}
       </div>

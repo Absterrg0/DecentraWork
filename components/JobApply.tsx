@@ -37,6 +37,7 @@ export default function ApplyJobComponent() {
   const { data: session, status } = useSession()
   const router = useRouter()
 
+  
   useEffect(() => {
     if (id && status === 'authenticated') {
       fetchProjectData()
@@ -53,6 +54,9 @@ export default function ApplyJobComponent() {
     } finally {
       setIsLoading(false)
     }
+  }
+  const handleViewApplications = ()=>{
+    router.push(`/user/${session?.user.id}/proposals`)
   }
 
   const checkApplicationStatus = async () => {
@@ -205,7 +209,7 @@ export default function ApplyJobComponent() {
                   <p className="text-xl font-semibold">You have already applied for this job!</p>
                   <Button
                     className="mt-6 bg-[#86C232] hover:bg-[#61892F] text-white transition duration-300 ease-in-out"
-                    onClick={() => router.push('/dashboard')}
+                    onClick={handleViewApplications}
                   >
                     View Your Applications
                   </Button>

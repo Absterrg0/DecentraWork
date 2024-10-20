@@ -14,13 +14,6 @@ export async function GET() {
         const userId = parseInt(session.user.id)
 
         const response = await client.project.findMany({
-            where: {
-                applications: {
-                    none: {
-                        applicantId: userId
-                    }
-                }
-            },
             include: {
                 client: {
                     select: {

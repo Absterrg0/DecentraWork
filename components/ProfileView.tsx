@@ -19,6 +19,9 @@ interface User {
   experience: string | null
   skills: string[]
   bio: string | null
+  walletAddressSOL: string,
+  walletAddressETH: string
+  projectsCreated: Project[] // Added projectsCreated here
 }
 
 interface Project {
@@ -38,36 +41,25 @@ interface Project {
 
 export default function ProfileViewComponent() {
   const [user, setUser] = useState<User | null>(null)
-  const [projects, setProjects] = useState<Project[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const { id } = useParams() as {id:string}
+  const { id } = useParams() as { id: string }
 
   useEffect(() => {
     if (id) {
-      fetchUserProfile(id)
-      fetchUserProjects(id)
+      fetchUserProfileWithProjects(id)
     }
   }, [id])
 
-  const fetchUserProfile = async (id: string) => {
+  const fetchUserProfileWithProjects = async (id: string) => {
     try {
       const { data } = await axios.get(`/api/user/account/${id}`)
+      console.log(data)
       setUser(data)
     } catch (err) {
-      setError('Failed to load user profile.')
+      setError('Failed to load user profile and projects.')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const fetchUserProjects = async (id: string) => {
-    try {
-      const { data } = await axios.get(`/api/projects/${id}/info`)
-      setProjects(Array.isArray(data.project) ? data.project : [data.project])
-    } catch (err) {
-      console.error('Failed to load user projects:', err)
-      setError('Failed to load user projects.')
     }
   }
 
@@ -160,12 +152,20 @@ export default function ProfileViewComponent() {
                       ))}
                     </div>
                   </div>
+                  <div>
+                    <Label className="text-[#86C232]">Solana Wallet Address</Label>
+                    <p className="text-[#C5C6C7]">{user.walletAddressSOL || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-[#86C232]">ETH Wallet Address</Label>
+                    <p className="text-[#C5C6C7]">{user.walletAddressETH || 'Not specified'}</p>
+                  </div>
                 </motion.div>
               </TabsContent>
               <TabsContent value="projects">
                 <div className="space-y-4">
-                  {projects.length > 0 ? (
-                    projects.map((project) => (
+                  {user.projectsCreated.length > 0 ? (
+                    user.projectsCreated.map((project) => (
                       <motion.div
                         key={project.id}
                         initial={{ opacity: 0, y: 20 }}

@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import axios from 'axios'
@@ -13,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Edit2, Save, X, Briefcase, DollarSign, Calendar, User, Mail } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface User {
   id: number
@@ -21,8 +21,9 @@ interface User {
   experience: string | null
   skills: string[]
   bio: string | null
-  walletAddressSOL : string,
-  walletAddressETH : string
+  walletAddressSOL: string
+  walletAddressETH: string
+  projectsCreated: Project[]; // Added property
 }
 
 interface Project {
@@ -43,25 +44,25 @@ interface Project {
 export default function Component() {
   const { data: session } = useSession()
   const [user, setUser] = useState<User | null>(null)
-  const [projects, setProjects] = useState<Project[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editedUser, setEditedUser] = useState<User | null>(null)
+  const [isOwner, setIsOwner] = useState(false)
+  const router = useRouter();
 
   useEffect(() => {
     if (session?.user) {
       fetchUserProfile(session.user.id)
-      fetchUserProjects(session.user.id)
     }
   }, [session])
 
   const fetchUserProfile = async (id: string) => {
     try {
       const { data } = await axios.get(`/api/user/account/${id}`)
-      console.log(data)
       setUser(data)
       setEditedUser(data)
+      setIsOwner(session?.user?.id === data.id.toString())
     } catch (err) {
       setError('Failed to load user profile.')
     } finally {
@@ -69,27 +70,21 @@ export default function Component() {
     }
   }
 
-  const fetchUserProjects = async (id: string) => {
-    try {
-      const { data } = await axios.get(`/api/projects/${id}/info`)
-      setProjects(data.project || [])
-    } catch (err) {
-      console.error('Failed to load user projects:', err)
-      setError('Failed to load user projects.')
+  const handleEdit = () => {
+    if (isOwner) {
+      setIsEditing(true)
     }
   }
 
-  const handleEdit = () => {
-    setIsEditing(true)
-  }
-
   const handleSave = async () => {
-    try {
-      await axios.put(`/api/user/account/${user?.id}`, editedUser)
-      setUser(editedUser)
-      setIsEditing(false)
-    } catch (err) {
-      setError('Failed to update user profile.')
+    if (isOwner) {
+      try {
+        await axios.put(`/api/user/account/${user?.id}`, editedUser)
+        setUser(editedUser)
+        setIsEditing(false)
+      } catch (err) {
+        setError('Failed to update user profile.')
+      }
     }
   }
 
@@ -169,7 +164,7 @@ export default function Component() {
                 <TabsTrigger value="projects" className="data-[state=active]:bg-[#86C232] data-[state=active]:text-[#222629]">Projects</TabsTrigger>
               </TabsList>
               <TabsContent value="profile">
-                {isEditing ? (
+                {isEditing && isOwner ? (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -253,7 +248,7 @@ export default function Component() {
                   >
                     <div>
                       <Label className="text-[#86C232]">Bio</Label>
-                      <p  className="text-[#C5C6C7]  break-words">{user.bio || 'No bio available'}</p>
+                      <p className="text-[#C5C6C7] break-words">{user.bio || 'No bio available'}</p>
                     </div>
                     <div>
                       <Label className="text-[#86C232]">Experience Level</Label>
@@ -272,7 +267,8 @@ export default function Component() {
                           <p className="text-[#C5C6C7]">No skills specified</p>
                         )}
                       </div>
-                      <div>
+                    </div>
+                    <div>
                       <Label className="text-[#86C232]">Solana Wallet Address</Label>
                       <p className="text-[#C5C6C7]">{user.walletAddressSOL || 'Not specified'}</p>
                     </div>
@@ -280,16 +276,17 @@ export default function Component() {
                       <Label className="text-[#86C232]">Ethereum Wallet Address</Label>
                       <p className="text-[#C5C6C7]">{user.walletAddressETH || 'Not specified'}</p>
                     </div>
-                    </div>
-                    <Button onClick={handleEdit} className="bg-[#86C232] hover:bg-[#61892F] text-[#222629]">
-                      <Edit2 className="mr-2 h-4 w-4" /> Edit Profile
-                    </Button>
+                    {isOwner && (
+                      <Button onClick={handleEdit} className="bg-[#86C232] hover:bg-[#61892F] text-[#222629]">
+                        <Edit2 className="mr-2 h-4 w-4" /> Edit Profile
+                      </Button>
+                    )}
                   </motion.div>
                 )}
               </TabsContent>
               <TabsContent value="projects">
                 <div className="space-y-4">
-                  {Object.keys(projects).length === 0 ? (
+                  {user.projectsCreated.length === 0 ? (
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -299,7 +296,7 @@ export default function Component() {
                       No projects created
                     </motion.p>
                   ) : (
-                    projects.map((project) => (
+                    user.projectsCreated.map((project) => (
                       <motion.div
                         key={project.id}
                         initial={{ opacity: 0, y: 20 }}
@@ -341,7 +338,6 @@ export default function Component() {
                                 ) : (
                                   <p className="text-[#C5C6C7]">No specific skills required</p>
                                 )}
-                              
                               </div>
                             </div>
                             <div>
@@ -352,6 +348,14 @@ export default function Component() {
                                 <Mail className="mr-2 h-5 w-5 text-[#61892F]" />
                                 <span className="text-[#C5C6C7]">{project.client.email}</span>
                               </div>
+                            </div>
+                            <div>
+                              <button
+                                onClick={() => router.push(`/projects/${project.id}/proposals`)}
+                                className="bg-[#86C232] hover:bg-[#61892F] text-[#222629] py-2 px-4 rounded transition"
+                              >
+                                View Proposals
+                              </button>
                             </div>
                           </CardContent>
                         </Card>

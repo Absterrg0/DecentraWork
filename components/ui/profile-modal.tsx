@@ -19,15 +19,19 @@ export default function ProfileCompletionModal({ isOpen, onClose, onComplete }: 
   const [experience, setExperience] = useState('');
   const [skills, setSkills] = useState('');
   const [bio, setBio] = useState('');
+  const [walletAddressSOL,setwalletAddressSOL]= useState('')
+  const [walletAddressETH,setwalletAddressETH]= useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (session?.user?.id) {
       try {
-        await axios.put(`/api/users/${session.user.id}`, {
+        await axios.put(`/api/user/account/${session.user.id}`, {
           experience,
           skills: skills.split(',').map(skill => skill.trim()),
-          bio
+          bio,
+          walletAddressETH,
+          walletAddressSOL
         });
         onComplete();
         onClose(); // Close modal after completion
@@ -77,6 +81,26 @@ export default function ProfileCompletionModal({ isOpen, onClose, onComplete }: 
               onChange={(e) => setBio(e.target.value)}
               className="w-full bg-[#474B4F] bg-opacity-70 border-[#86C232] focus:border-[#61892F] text-white placeholder-gray-400"
               placeholder="Tell us about yourself..."
+            />
+          </div>
+          <div>
+            <label htmlFor="walletAddressSOL" className="block text-sm font-medium text-[#86C232]">Solana Wallet Address</label>
+            <Textarea
+              id="walletAddressSOl"
+              value={walletAddressSOL}
+              onChange={(e) => setwalletAddressSOL(e.target.value)}
+              className="w-full bg-[#474B4F] bg-opacity-70 border-[#86C232] focus:border-[#61892F] text-white placeholder-gray-400"
+              placeholder="Enter your solana wallet address"
+            />
+          </div>
+          <div>
+            <label htmlFor="walletAddressETH" className="block text-sm font-medium text-[#86C232]">Ethereum Wallet Address</label>
+            <Textarea
+              id="walletAddressETH"
+              value={walletAddressETH}
+              onChange={(e) => setwalletAddressETH(e.target.value)}
+              className="w-full bg-[#474B4F] bg-opacity-70 border-[#86C232] focus:border-[#61892F] text-white placeholder-gray-400"
+              placeholder="Enter your ethereum wallet address"
             />
           </div>
           <DialogFooter>

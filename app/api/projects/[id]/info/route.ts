@@ -44,6 +44,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       },
     });
 
+
     // If project not found, return a 404 error
     if (!project) {
       return NextResponse.json(
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Return the project info along with client details
     return NextResponse.json({
-      project: [{
+      project:{
         id: project.id,
         title: project.title,
         description: project.description,
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         experienceReq: project.experienceReq,
         skillsRequired: project.skillsRequired,
         client: project.client, // Include the client details in the response
-      }],
+      },
     });
 
   } catch (error) {

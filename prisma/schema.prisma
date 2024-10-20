@@ -57,4 +57,6 @@ model Application {
   applicant         User      @relation(fields: [applicantId], references: [id])
   applicantId       Int
   applicationStatus String    @default("pending") // Status of the application
+
+  @@unique([applicantId, projectId]) // Unique constraint for the combination of applicantId and projectId
 }

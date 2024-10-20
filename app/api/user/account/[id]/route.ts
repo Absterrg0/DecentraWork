@@ -5,19 +5,21 @@ import { getServerSession } from "next-auth";
 import authValues from "@/lib/auth";
 
 
-export async function GET(req: NextRequest,{params}:{params:{id:string}}) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getServerSession(authValues);
-  if(!session||!session.user){
-    return NextResponse.json({
-      msg:"Unauthorized"
-    })
+  
+  // Check for unauthorized access
+  if (!session || !session.user) {
+    return NextResponse.json({ msg: "Unauthorized" });
   }
+
   try {
     const userId = parseInt(params.id);
-    // Fetch the user details from the database using Prisma
+    
+    // Fetch the user details and their projects from the database using Prisma
     const user = await client.user.findUnique({
       where: {
-        id: userId
+        id: userId,
       },
       select: {
         id: true,
@@ -26,8 +28,26 @@ export async function GET(req: NextRequest,{params}:{params:{id:string}}) {
         experience: true,
         skills: true,
         bio: true,
-        walletAddressETH:true,
-        walletAddressSOL:true
+        walletAddressETH: true,
+        walletAddressSOL: true,
+        projectsCreated: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            budget: true,
+            timeExpected: true,
+            experienceReq: true,
+            skillsRequired: true,
+            client: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
       }, // Select specific fields to return (excluding sensitive data like password)
     });
 
@@ -49,7 +69,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 
   const body = await req.json();
-  const userId = parseInt(params.id);
+  const userId = parseInt(session.user.id);
 
   // Ensure the user is updating their own profile
   if (session.user.id !== userId.toString()) {

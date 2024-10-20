@@ -21,6 +21,7 @@ interface Application {
   project: Project;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
+  coverLetter: string
 }
 
 type SortOption = 'date' | 'budget';
@@ -97,12 +98,28 @@ export default function UserProposalsComponent() {
   };
 
   const renderSkillsBadges = (skills: string[]) => {
-    return skills.map(skill => (
-      <span key={skill} className="inline-block bg-[#86C232] text-[#1A1C1E] text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-        {skill}
-      </span>
-    ));
+    const skillRows = [];
+  
+    // Split skills into chunks of 6
+    for (let i = 0; i < skills.length; i += 6) {
+      skillRows.push(skills.slice(i, i + 6));
+    }
+  
+    return (
+      <div>
+        {skillRows.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex flex-wrap mb-2">
+            {row.map(skill => (
+              <span key={skill} className="inline-block bg-[#86C232] text-[#1A1C1E] text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                {skill}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
   };
+  
 
   const handleViewCoverLetter = (application: Application) => {
     setSelectedApplication(application);
@@ -194,7 +211,12 @@ export default function UserProposalsComponent() {
               <tbody className="bg-[#2F3439] divide-y divide-[#86C232]">
                 {filteredApplications.map(application => (
                   <tr key={application.id} className="hover:bg-[#1A1C1E] transition duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">{application.project.title}</td>
+<td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">
+  {application.project.title.length > 20 
+    ? `${application.project.title.slice(0, 20)}...` 
+    : application.project.title}
+</td>
+
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">{renderSkillsBadges(application.project.skillsRequired)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">${application.project.budget}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-[#C5C6C7]">{new Date(application.createdAt).toLocaleDateString()}</td>
@@ -219,7 +241,7 @@ export default function UserProposalsComponent() {
               <DialogContent className="max-w-2xl bg-[#2F3439] rounded-lg shadow-lg">
                 <DialogHeader>
                   <DialogTitle className="text-[#86C232]">Cover Letter</DialogTitle>
-                  <DialogDescription className="text-[#C5C6C7]">{selectedApplication.project.description}</DialogDescription>
+                  <DialogDescription className="text-[#C5C6C7]">{selectedApplication.coverLetter}</DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
                   <Button onClick={closeDialog} className="bg-[#86C232] hover:bg-[#61892F] text-white transition-colors duration-200">

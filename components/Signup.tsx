@@ -37,7 +37,7 @@ export default function SignupForm() {
       toast.success("You've successfully signed up."); 
 
       setTimeout(() => {
-        router.push('/onboarding')
+        router.push('/signin')
       }, 1000);
     } catch (error) {
       const axiosError = error as AxiosError<ApiResponse>;

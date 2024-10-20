@@ -34,7 +34,6 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import ProfileCompletionModal from './ui/profile-modal';
-import toast from 'react-hot-toast';
 interface Project {
   id: number;
   title: string;
@@ -55,6 +54,7 @@ interface User {
   skills: string[] | null;
   bio: string | null;
 }
+import { MessageCircle,PlusCircle } from 'lucide-react';
 
 const experienceLevels = ["Beginner", "Intermediate", "Advanced", "Expert"];
 
@@ -63,7 +63,7 @@ export default function DashBoardComponent() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedSkill, setSelectedSkill] = useState<string>('all');
-  const [budgetRange, setBudgetRange] = useState<number[]>([0, 10000]);
+  const [budgetRange, setBudgetRange] = useState<number[]>([0, 100000000000]);
   const [selectedExperience, setSelectedExperience] = useState<string[]>([]);
   const [allSkills, setAllSkills] = useState<string[]>([]);
   const { data: session, status } = useSession();
@@ -75,8 +75,9 @@ export default function DashBoardComponent() {
     checkProfileCompletion();
   }, [session]);
 
-  const handleSignOut = () => {
-    signOut();
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/')
   };
 
 
@@ -98,6 +99,12 @@ export default function DashBoardComponent() {
       }
     }
   };
+  const handleMessages = () =>{
+    router.push(`/user/${session?.user.id}/messages`)
+  }
+  const handleCreateProject = () =>{
+    router.push('/projects/create')
+  }
 
   const handleMyProposals = () => {
     if (status === "authenticated" && session?.user?.id) {
@@ -137,64 +144,80 @@ export default function DashBoardComponent() {
 
   return (
     <div className="min-h-screen bg-[#222629] text-gray-300">
-    <motion.header 
-      className="bg-[#222629] shadow-lg sticky top-0 z-50"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+ <motion.header 
+  className="bg-[#222629] shadow-lg sticky top-0 z-50"
+  initial={{ y: -100 }}
+  animate={{ y: 0 }}
+  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+>
+  <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+    <motion.h1 
+      className="text-3xl font-bold text-[#86C232]"
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: "spring", stiffness: 400, damping: 10 }}
     >
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <motion.h1 
-          className="text-3xl font-bold text-[#86C232]"
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 400, damping: 10 }}
-        >
-          DecentraWork
-        </motion.h1>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center space-x-2 text-gray-300 hover:text-[#86C232] transition-colors duration-300">
-              <motion.div 
-                className="relative"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Avatar className="h-10 w-10 ring-2 ring-[#86C232]">
-                  <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                {!isProfileComplete && (
-                  <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#222629]" />
-                )}
-              </motion.div>
-              <span>{session?.user.name}</span>
-              <ChevronDown size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 bg-[#2F3439] border border-[#86C232] rounded-lg shadow-xl">
-            <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={handleMyProfile}>
-              <User className="mr-2 h-4 w-4" />
-              <span>My Profile</span>
+      DecentraWork
+    </motion.h1>
+
+    <div className="flex items-center space-x-4">
+      <button 
+        className="text-gray-300 hover:text-[#86C232] transition-colors duration-300 flex items-center" 
+        onClick={handleMessages} // Handle the messages click event
+      >
+        <MessageCircle className="h-6 w-6" />
+      </button>
+
+      <button 
+        className="text-gray-300 hover:text-[#86C232] transition-colors duration-300 flex items-center" 
+        onClick={handleCreateProject} // Handle the create project click event
+      >
+        <PlusCircle className="h-6 w-6" />
+      </button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="flex items-center space-x-2 text-gray-300 hover:text-[#86C232] transition-colors duration-300">
+            <motion.div 
+              className="relative"
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Avatar className="h-10 w-10 ring-2 ring-[#86C232]">
+                <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+              {!isProfileComplete && (
+                <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#222629]" />
+              )}
+            </motion.div>
+            <span>{session?.user.name}</span>
+            <ChevronDown size={16} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56 bg-[#2F3439] border border-[#86C232] rounded-lg shadow-xl">
+          <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={handleMyProfile}>
+            <User className="mr-2 h-4 w-4" />
+            <span>My Profile</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={handleMyProposals}>
+            <Briefcase className="mr-2 h-4 w-4" />
+            <span>My Proposals</span>
+          </DropdownMenuItem>
+          {!isProfileComplete && (
+            <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={() => setShowProfileModal(true)}>
+              <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
+              <span>Complete Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={handleMyProposals}>
-              <Briefcase className="mr-2 h-4 w-4" />
-              <span>My Proposals</span>
-            </DropdownMenuItem>
-            {!isProfileComplete && (
-              <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={() => setShowProfileModal(true)}>
-                <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
-                <span>Complete Profile</span>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log Out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </motion.header>
-    
+          )}
+          <DropdownMenuItem className="text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300" onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log Out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  </div>
+</motion.header>
     <main className="container mx-auto px-4 py-12">
       <motion.h2 
         className="text-5xl font-bold mb-12 text-center text-[#86C232]"
