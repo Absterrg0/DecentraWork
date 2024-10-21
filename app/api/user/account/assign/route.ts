@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { applicantId, id: projectId } = await req.json();
-
+    console.log(applicantId);
+    console.log(projectId);
     // Basic validation
     if (!applicantId || !projectId || isNaN(Number(applicantId)) || isNaN(Number(projectId))) {
         return NextResponse.json({ msg: "Invalid applicantId or projectId" }, { status: 400 });

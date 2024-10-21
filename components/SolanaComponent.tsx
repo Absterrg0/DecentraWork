@@ -26,7 +26,6 @@ const SolanaComponent: React.FC = () => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [applicantName, setApplicantName] = useState<string | null>(null); // State for applicant's name
   const escrowId = "6mxD8MFakTGewgamvnA9MfC4fNBiZavwfbCCzccgwKYm"; // Escrow public key
   const connection = new Connection("https://api.devnet.solana.com", "confirmed");
   const { id } = useParams();
@@ -41,12 +40,6 @@ const SolanaComponent: React.FC = () => {
         const projectResponse = await axios.get(`/api/projects/${id}/info`);
         setProjectDetails(projectResponse.data.project);
         fetchLatestSolPrice();
-
-        // Fetch applicant's name using applicantId
-        if (applicantId) {
-          const applicantResponse = await axios.get(`/api/applicants/${applicantId}`);
-          setApplicantName(applicantResponse.data.name); // Assuming the API returns the applicant's name
-        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -93,10 +86,11 @@ const SolanaComponent: React.FC = () => {
         const signature = await wallet.sendTransaction(transaction, connection);
         await connection.confirmTransaction(signature, 'processed');
         setTransactionComplete(true);
-        await axios.post('/user/account/assign',{applicantId,id})
+        await axios.post('/api/user/account/assign',{applicantId,id})
         router.push(`/projects/${id}/assign/?applicantId=${applicantId}`)
 
       } catch (error) {
+        console.log("Hello world");
         console.error('Transaction failed', error);
         alert('Transaction failed. Please try again.');
       } finally {
@@ -122,7 +116,6 @@ const SolanaComponent: React.FC = () => {
 
   const handleContactFreelancer = () => {
     // Implement the logic for contacting the freelancer, e.g., open a chat or redirect to a contact page
-    alert(`Contact ${applicantName}`); // Placeholder for contact logic
   };
 
   if (isLoading) {
@@ -149,13 +142,9 @@ const SolanaComponent: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
           >
             <CheckCircle size={20} className="mr-2" />
-            <p>{applicantName} has been successfully assigned to this project!</p>
-            <button
-              className="mt-4 bg-blue-500 text-white py-2 px-4 rounded"
-              onClick={handleContactFreelancer}
-            >
-              Contact Freelancer
-            </button>
+            <div>
+              Redirecting....
+            </div>
           </motion.div>
         )}
 

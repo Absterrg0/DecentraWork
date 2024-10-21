@@ -14,22 +14,21 @@ datasource db {
 }
 
 
-
-
-
 model User {
   id                Int       @id @default(autoincrement())
   name              String
   email             String    @unique
   password          String
   experience        String?
-  skills            String[]  // Optional array of skills, can be null
+  skills            String[]
   bio               String?
   projectsCreated   Project[] @relation("ClientProjects")
   applications      Application[]
   projectsAssigned  Project[] @relation("AssignedApplicant")
   walletAddressSOL  String    @default("")
   walletAddressETH  String    @default("")
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
 }
 
 model Project {
@@ -44,8 +43,9 @@ model Project {
   client            User       @relation("ClientProjects", fields: [clientId], references: [id])
   clientId          Int
   applications      Application[]
-  assigned          User?      @relation("AssignedApplicant", fields: [assignedId], references: [id]) // Nullable initially
-  assignedId        Int?       // The foreign key field to store the assigned applicant's ID
+  assigned          User?      @relation("AssignedApplicant", fields: [assignedId], references: [id])
+  assignedId        Int?
+  messages          Message[]
 }
 
 model Application {
@@ -56,7 +56,19 @@ model Application {
   projectId         Int
   applicant         User      @relation(fields: [applicantId], references: [id])
   applicantId       Int
-  applicationStatus String    @default("pending") // Status of the application
+  applicationStatus String    @default("pending")
 
-  @@unique([applicantId, projectId]) // Unique constraint for the combination of applicantId and projectId
+  @@unique([applicantId, projectId])
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  content     String
+  createdAt   DateTime @default(now())
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId    Int
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiverId  Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   Int
 }

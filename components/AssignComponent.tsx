@@ -10,12 +10,15 @@ const AssignFreelancer: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicantId = searchParams.get('applicantId');
-  const projectId = useParams(); // Assuming the project ID is in the query params
+  const {id} = useParams(); // Assuming the project ID is in the query params
 
   const [loading, setLoading] = useState(true);
   const [freelancer, setFreelancer] = useState<any>(null); // Adjust type as per your freelancer model
   const [error, setError] = useState<string | null>(null);
-
+  const handleContact = async () =>{
+    router.push(`/projects/${id}/contact/`)
+  }
+  console.log(id);
   useEffect(() => {
     const fetchFreelancerDetails = async () => {
       try {
@@ -52,20 +55,16 @@ const AssignFreelancer: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-gray-100 p-4">
       <h2 className="text-3xl font-bold text-center mb-4 text-blue-400">
-        Freelancer Assigned
+        Freelancer Assigned!!!
       </h2>
       {freelancer && (
         <div className="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
           <p className="text-lg text-center">
             {freelancer.name} has been successfully assigned to your project!
           </p>
-          <div className="mt-4">
-            <p className="text-sm text-gray-400">Contact:</p>
-            <p className="text-lg font-semibold">{freelancer.email}</p>
-          </div>
           <button
             className="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-semibold transition duration-300 ease-in-out"
-            onClick={() => router.push(`/contact/${freelancer.id}`)} // Adjust routing as needed
+            onClick={(handleContact)} // Adjust routing as needed
           >
             Contact Freelancer
           </button>

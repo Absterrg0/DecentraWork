@@ -45,7 +45,7 @@ interface Project {
   createdAt: string;
   clientId: number;
 }
-
+import MessageOptions from './ui/messageOptions';
 interface User {
   id: number;
   name: string;
@@ -69,6 +69,7 @@ export default function DashBoardComponent() {
   const { data: session, status } = useSession();
   const [isProfileComplete, setIsProfileComplete] = useState<boolean>(true);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+  const [showMessagesOptions, setShowMessagesOptions] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProjects();
@@ -99,9 +100,20 @@ export default function DashBoardComponent() {
       }
     }
   };
-  const handleMessages = () =>{
-    router.push(`/user/${session?.user.id}/messages`)
-  }
+
+  const handleMessages = () => {
+    setShowMessagesOptions(true);
+  };
+
+  const handleViewProjects = () => {
+    setShowMessagesOptions(false);
+    router.push(`/user/${session?.user.id}/projects`);
+  };
+
+  const handleViewClients = () => {
+    setShowMessagesOptions(false);
+    router.push(`/user/${session?.user.id}/clients`);
+  };
   const handleCreateProject = () =>{
     router.push('/projects/create')
   }
@@ -160,13 +172,7 @@ export default function DashBoardComponent() {
     </motion.h1>
 
     <div className="flex items-center space-x-4">
-      <button 
-        className="text-gray-300 hover:text-[#86C232] transition-colors duration-300 flex items-center" 
-        onClick={handleMessages} // Handle the messages click event
-      >
-        <MessageCircle className="h-6 w-6" />
-      </button>
-
+        <MessageOptions></MessageOptions>
       <button 
         className="text-gray-300 hover:text-[#86C232] transition-colors duration-300 flex items-center" 
         onClick={handleCreateProject} // Handle the create project click event
