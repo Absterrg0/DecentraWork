@@ -15,13 +15,13 @@ export  async function GET(request: NextRequest,{params}:{params:{id:string}}) {
     }
 
     // Extract user ID from the request URL
-    const id = parseInt(params.id);
+    const id = params.id;
 
     try {
         // Fetch the projects created by the user
         const projects = await client.user.findMany({
             where: {
-                clientId: id, // Assuming the relation is set with clientId
+                id: parseInt(id), // Assuming the relation is set with id
             },
         });
 

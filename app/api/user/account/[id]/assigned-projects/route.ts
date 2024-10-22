@@ -1,57 +1,54 @@
 import authValues from "@/lib/auth";
 import { getServerSession } from "next-auth";
+import { useParams } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
-import client from '@/db';
+import client from '@/db'
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+    // Verify user authentication
     const session = await getServerSession(authValues);
-    
     if (!session || !session.user) {
         return NextResponse.json({
             msg: "Unauthorized"
         }, { status: 401 });
     }
-    
+
+    const id = params.id;
+
     try {
-        const clientId = params.id;
-
-        // Check if the session user is allowed to view this user's projects
-        if (session.user.id !== (clientId)) {
-            return NextResponse.json({
-                msg: "Forbidden"
-            }, { status: 403 });
-        }
-
-        // Fetch projects created by this user and where a freelancer is assigned
-        const createdProjects = await client.project.findMany({
+        // Find projects where the user is assigned
+        const response = await client.project.findMany({
             where: {
-                clientId: parseInt(clientId),
-                assignedId: { not: null } // Ensure the project has an assigned freelancer
+                assignedId: parseInt(id)
             },
             include: {
+                // Include related client details
                 client: {
                     select: {
                         id: true,
                         name: true,
-                        email: true
+                        email: true,
+                        // Add any other client fields you need
                     }
                 },
+                // Include assigned user details
                 assigned: {
                     select: {
                         id: true,
                         name: true,
-                        email: true
+                        email: true,
+                        // Add any other user fields you need
                     }
                 }
             }
         });
 
-        // Return the created projects
-        return NextResponse.json(createdProjects);
+        return NextResponse.json(response)
     } catch (error) {
-        console.error(error);
+        console.error("Error fetching assigned projects:", error);
         return NextResponse.json({
-            msg: "Something went wrong"
+            msg: "Error fetching projects",
+            error: error
         }, { status: 500 });
     }
 }

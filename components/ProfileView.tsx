@@ -54,7 +54,6 @@ export default function ProfileViewComponent() {
   const fetchUserProfileWithProjects = async (id: string) => {
     try {
       const { data } = await axios.get(`/api/user/account/${id}`)
-      console.log(data)
       setUser(data)
     } catch (err) {
       setError('Failed to load user profile and projects.')

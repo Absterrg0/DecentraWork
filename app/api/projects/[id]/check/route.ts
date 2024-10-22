@@ -19,8 +19,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const applicantId = parseInt(session.user.id);
     const projectId =parseInt(params.id);
 
-    console.log('Applicant ID:', applicantId);
-    console.log('Project ID:', projectId);
 
     // Check if the user has applied for the project
     const application = await client.application.findFirst({

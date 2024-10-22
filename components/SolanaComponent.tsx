@@ -90,7 +90,6 @@ const SolanaComponent: React.FC = () => {
         router.push(`/projects/${id}/assign/?applicantId=${applicantId}`)
 
       } catch (error) {
-        console.log("Hello world");
         console.error('Transaction failed', error);
         alert('Transaction failed. Please try again.');
       } finally {

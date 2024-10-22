@@ -18,7 +18,6 @@ const AssignFreelancer: React.FC = () => {
   const handleContact = async () =>{
     router.push(`/projects/${id}/contact/`)
   }
-  console.log(id);
   useEffect(() => {
     const fetchFreelancerDetails = async () => {
       try {

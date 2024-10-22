@@ -77,8 +77,7 @@ export default function DashBoardComponent() {
   }, [session]);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/')
+      await signOut();
   };
 
 

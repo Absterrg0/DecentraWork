@@ -3,50 +3,119 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import axios from 'axios'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { MessageCircle, User } from 'lucide-react'
+import { MessageCircle, User, Send, ChevronRight, Loader2 } from 'lucide-react'
+
+type UserDetails = {
+  id: number
+  name: string
+  email: string
+}
 
 type Project = {
   id: number
   title: string
-  description: string
-  client: {
-    id: number
-    name: string
-    email: string
-  }
-  assigned: {
-    id: number
-    name: string
-    email: string
-  }
+  client: UserDetails
+  assigned: UserDetails
 }
 
+type Message = {
+  id: number
+  content: string
+  createdAt: string
+  senderId: number
+  receiverId: number
+  projectId: number
+}
+
+// Custom component to handle message text wrapping
+const MessageContent = ({ content }: { content: string }) => {
+    // Split content into chunks of max 100 letters
+    const formatContent = (text: string) => {
+      const lines: string[] = []
+      let currentLine = ''
+      
+      // Process each character
+      for (let i = 0; i < text.length; i++) {
+        currentLine += text[i]
+        
+        // Check if we've reached 100 letters or end of text
+        if (currentLine.length === 100 || i === text.length - 1) {
+          // If we're not at the end of a word, find the last space
+          if (i !== text.length - 1 && text[i + 1] !== ' ') {
+            const lastSpaceIndex = currentLine.lastIndexOf(' ')
+            if (lastSpaceIndex !== -1) {
+              // Push the line up to the last space
+              lines.push(currentLine.substring(0, lastSpaceIndex))
+              // Start new line with the remaining characters
+              currentLine = currentLine.substring(lastSpaceIndex + 1)
+              // Move index back to account for the characters we're keeping
+              i -= (currentLine.length - 1)
+            } else {
+              // If no space found, force break at 100
+              lines.push(currentLine)
+              currentLine = ''
+            }
+          } else {
+            // We're at a natural word break or end of text
+            lines.push(currentLine)
+            currentLine = ''
+          }
+        }
+      }
+      
+      // Add any remaining text
+      if (currentLine) {
+        lines.push(currentLine)
+      }
+      
+      return lines
+    }
+  
+    const lines = formatContent(content)
+  
+    return (
+      <div className="whitespace-pre-wrap break-words">
+        {lines.map((line, index) => (
+          <React.Fragment key={index}>
+            {line}
+            {index < lines.length - 1 && <br />}
+          </React.Fragment>
+        ))}
+      </div>
+    )
+  }
+
 export default function CreatedProjectsMessagesComponent() {
-  const [createdProjects, setCreatedProjects] = useState<Project[]>([])
-  const [assignedProjects, setAssignedProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [messages, setMessages] = useState<{ id: number; content: string; createdAt: string; senderId: number; receiverId: number }[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [socket, setSocket] = useState<WebSocket | null>(null)
-  const [client, setClient] = useState<{ id: number; name: string; email: string } | null>(null)
+  const [isConnecting, setIsConnecting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { id } = useParams()
 
   useEffect(() => {
     fetchProjects()
-    fetchClientDetails()
   }, [id])
 
   useEffect(() => {
-    if (selectedProject) {
+    if (selectedProject && !isConnecting) {
       fetchProjectMessages(selectedProject.id)
-      initializeWebSocket(selectedProject.id)
+      initializeWebSocket()
+    }
+    
+    return () => {
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.close()
+      }
     }
   }, [selectedProject])
 
@@ -57,19 +126,11 @@ export default function CreatedProjectsMessagesComponent() {
   const fetchProjects = async () => {
     try {
       const response = await axios.get(`/api/user/account/${id}/created-projects`)
-      setCreatedProjects(response.data)
-      setAssignedProjects(response.data)
+      setProjects(response.data)
+      setIsLoading(false)
     } catch (error) {
       console.error('Error fetching projects:', error)
-    }
-  }
-
-  const fetchClientDetails = async () => {
-    try {
-      const response = await axios.get(`/api/user/${id}`)
-      setClient(response.data)
-    } catch (error) {
-      console.error('Error fetching client details:', error)
+      setIsLoading(false)
     }
   }
 
@@ -82,46 +143,62 @@ export default function CreatedProjectsMessagesComponent() {
     }
   }
 
-  const initializeWebSocket = (projectId: number) => {
-    const ws = new WebSocket(`ws://localhost:8080`)
-    setSocket(ws)
-
+  const initializeWebSocket = () => {
+    setIsConnecting(true)
+    const PORT = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '8080'
+    const ws = new WebSocket(`ws://localhost:${PORT}`)
+    
     ws.onopen = () => {
       console.log('WebSocket connection established')
-      // Send project ID to server for room assignment
-      ws.send(JSON.stringify({ type: 'join', projectId }))
+      setSocket(ws)
+      setIsConnecting(false)
     }
 
     ws.onmessage = (event) => {
-      const message = JSON.parse(event.data)
-      setMessages((prevMessages) => [...prevMessages, message])
+      try {
+        const message = JSON.parse(event.data) as Message
+        setMessages((prevMessages) => [...prevMessages, message])
+      } catch (error) {
+        console.error('Error parsing message:', error)
+      }
     }
 
     ws.onerror = (error) => {
       console.error('WebSocket error:', error)
+      setIsConnecting(false)
     }
 
     ws.onclose = () => {
       console.log('WebSocket connection closed')
-    }
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close()
-      }
+      setSocket(null)
+      setIsConnecting(false)
     }
   }
 
   const sendMessage = () => {
-    if (newMessage.trim() && socket && socket.readyState === WebSocket.OPEN && selectedProject) {
-      const message = {
-        content: newMessage,
-        senderId: client?.id,
-        receiverId: selectedProject.assigned.id,
-        projectId: selectedProject.id,
+    if (!newMessage.trim() || !socket || socket.readyState !== WebSocket.OPEN || !selectedProject) {
+      return
+    }
+
+    const messageData = {
+      content: newMessage.trim(),
+      senderId: selectedProject.client.id,
+      receiverId: selectedProject.assigned.id,
+      projectId: selectedProject.id,
+    }
+
+    try {
+      socket.send(JSON.stringify(messageData))
+      
+      const optimisticMessage: Message = {
+        id: Date.now(),
+        ...messageData,
+        createdAt: new Date().toISOString(),
       }
-      socket.send(JSON.stringify(message))
+      setMessages((prevMessages) => [...prevMessages, optimisticMessage])
       setNewMessage('')
+    } catch (error) {
+      console.error('Error sending message:', error)
     }
   }
 
@@ -129,93 +206,157 @@ export default function CreatedProjectsMessagesComponent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
   return (
-    <div className="flex h-screen bg-[#222629] text-gray-300">
-      <div className="w-1/3 border-r border-[#86C232] p-4">
-        <h2 className="text-2xl font-bold mb-4 text-[#86C232]">Your Projects</h2>
-        <ScrollArea className="h-[calc(100vh-8rem)]">
-          {createdProjects.map((project) => (
-            <Card
-              key={project.id}
-              className="mb-4 bg-[#2F3439] border-[#86C232] cursor-pointer hover:bg-[#474B4F] transition-colors duration-300"
-              onClick={() => setSelectedProject(project)}
-            >
-              <CardHeader>
-                <CardTitle className="text-[#86C232]">{project.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-400 mb-2">{project.description}</p>
-                <div className="flex items-center text-sm">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>{project.client.name}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {assignedProjects.map((project) => (
-            <Card
-              key={project.id}
-              className="mb-4 bg-[#2F3439] border-[#86C232] cursor-pointer hover:bg-[#474B4F] transition-colors duration-300"
-              onClick={() => setSelectedProject(project)}
-            >
-              <CardHeader>
-                <CardTitle className="text-[#86C232]">{project.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-400 mb-2">{project.description}</p>
-                <div className="flex items-center text-sm">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>{project.client.name}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+    <motion.div 
+      className="flex h-full bg-[#222629] text-gray-300"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="w-1/4 border-r border-[#86C232] p-4"
+        initial={{ x: -50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <h2 className="text-xl font-bold mb-4 text-[#86C232]">Projects</h2>
+        <ScrollArea className="h-[calc(100vh-6rem)]">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin text-[#86C232]" />
+            </div>
+          ) : (
+            <AnimatePresence>
+              {projects.map((project) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-300 ${
+                    selectedProject?.id === project.id ? 'bg-[#474B4F]' : 'hover:bg-[#2F3439]'
+                  }`}
+                  onClick={() => setSelectedProject(project)}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium text-[#86C232]">{project.title}</span>
+                    <span className="text-xs text-gray-400">{project.assigned.name}</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-[#86C232]" />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </ScrollArea>
-      </div>
-      <div className="w-2/3 p-4">
+      </motion.div>
+      <motion.div 
+        className="flex-1 flex flex-col p-4"
+        initial={{ x: 50, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
         {selectedProject ? (
           <>
-            <h2 className="text-2xl font-bold mb-4 text-[#86C232]">Chat with {selectedProject.assigned.name}</h2>
-            <Card className="bg-[#2F3439] border-[#86C232]">
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-16rem)] mb-4 p-4">
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`mb-2 p-2 rounded ${
-                        message.senderId === client?.id ? 'bg-[#86C232] text-right' : 'bg-[#474B4F]'
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </ScrollArea>
-                <Separator className="my-4" />
-                <div className="flex">
-                  <Input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-grow mr-2 bg-[#474B4F] text-gray-300 border-[#86C232]"
-                  />
-                  <Button onClick={sendMessage} className="bg-[#86C232] text-white hover:bg-[#61892F]">
-                    Send
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <h2 className="text-2xl font-bold mb-4 text-[#86C232] flex items-center">
+              <MessageCircle className="mr-2 h-6 w-6" />
+              Chat with {selectedProject.assigned.name}
+              {isConnecting && (
+                <motion.span 
+                  className="ml-2 text-sm text-gray-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  (Connecting...)
+                </motion.span>
+              )}
+            </h2>
+            <div className="flex-1 bg-[#2F3439] rounded-lg p-4 flex flex-col">
+              <ScrollArea className="flex-1 pr-4">
+                <AnimatePresence>
+                  {messages.map((message, index) => {
+                    const isClient = message.senderId === selectedProject.client.id
+                    const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId
+                    return (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className={`flex ${isClient ? 'justify-end' : 'justify-start'} mb-4`}
+                      >
+                        {!isClient && showAvatar && (
+                          <div className="w-8 h-8 rounded-full bg-[#86C232] flex items-center justify-center mr-2">
+                            <User className="h-4 w-4 text-[#222629]" />
+                          </div>
+                        )}
+                        <div
+                          className={`max-w-[70%] p-3 rounded-lg ${
+                            isClient ? 'bg-[#86C232] text-[#222629]' : 'bg-[#474B4F] text-gray-300'
+                          }`}
+                        >
+                          <MessageContent content={message.content} />
+                        </div>
+                        {isClient && showAvatar && (
+                          <div className="w-8 h-8 rounded-full bg-[#61892F] flex items-center justify-center ml-2">
+                            <User className="h-4 w-4 text-[#222629]" />
+                          </div>
+                        )}
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
+                <div ref={messagesEndRef} />
+              </ScrollArea>
+              <Separator className="my-4" />
+              <motion.div 
+                className="flex items-center mt-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message..."
+                  disabled={!socket || socket.readyState !== WebSocket.OPEN}
+                  className="flex-grow mr-2 bg-[#474B4F] text-gray-300 border-[#86C232] focus:ring-[#86C232] focus:border-[#86C232]"
+                />
+                <Button 
+                  onClick={sendMessage}
+                  disabled={!socket || socket.readyState !== WebSocket.OPEN}
+                  className="bg-[#86C232] text-[#222629] hover:bg-[#61892F] disabled:opacity-50"
+                >
+                  <Send className="h-5 w-5" />
+                </Button>
+              </motion.div>
+            </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <motion.div 
+            className="flex-1 flex items-center justify-center"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="text-center">
               <MessageCircle className="h-16 w-16 text-[#86C232] mx-auto mb-4" />
               <p className="text-xl">Select a project to start chatting</p>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

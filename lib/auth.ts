@@ -1,16 +1,11 @@
 import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import client from '@/db';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client'
 
 export const authValues: AuthOptions = {
     providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        }),
         CredentialsProvider({
             name: 'Credentials',
             credentials: {
@@ -52,41 +47,40 @@ export const authValues: AuthOptions = {
         })
     ],
     pages: {
-        signIn: '/auth/signin', // Custom sign-in page
+        signIn: '/auth/signin',
     },
     callbacks: {
-        async jwt({ token, user, account }) {
-            if (account && user) {
-                return {
-                    ...token,
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    experience: (user as any).experience,
-                    skills: (user as any).skills,
-                    bio: (user as any).bio,
-                };
+        async jwt({ token, user }) {
+            if (user) {
+                token.id = user.id;
+                token.email = user.email;
+                token.name = user.name;
+                token.experience = (user as any).experience;
+                token.skills = (user as any).skills;
+                token.bio = (user as any).bio;
             }
             return token;
         },
         async session({ session, token }) {
-            return {
-                ...session,
-                user: {
-                    ...session.user,
-                    id: token.id as string,
-                    email: token.email as string,
-                    name: token.name as string,
-                    experience: token.experience as string | null,
-                    skills: token.skills as string[],
-                    bio: token.bio as string | null,
-                }
-            };
+            if (session.user) {
+                session.user.id = token.id as string;
+                session.user.email = token.email as string;
+                session.user.name = token.name as string;
+                session.user.experience = token.experience as string | null;
+                session.user.skills = token.skills as string[];
+                session.user.bio = token.bio as string | null;
+            }
+            return session;
         },
     },
     secret: process.env.NEXTAUTH_SECRET,
     session: {
         strategy: 'jwt',
+        maxAge: 30 * 24 * 60 * 60,
+    },
+    jwt: {
+        secret: process.env.NEXTAUTH_SECRET,
+        maxAge: 30 * 24 * 60 * 60,
     },
 };
 

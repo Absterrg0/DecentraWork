@@ -75,7 +75,6 @@ const PaymentPage = () => {
     try {
       if (!applicantId) return;
       const response = await axios.get(`/api/user/account/${applicantId}`);
-      console.log(response);
       setFreelancerDetails(response.data);
     } catch (error) {
       console.error('Error fetching freelancer details:', error);

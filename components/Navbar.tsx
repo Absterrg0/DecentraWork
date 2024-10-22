@@ -37,7 +37,7 @@ export default function NavBar() {
           <div className="hidden md:flex items-center space-x-8">
             {/* Listings */}
             <motion.a 
-              onClick={() => handleNavigation('/listing')}
+              onClick={() => handleNavigation('/dashboard')}
               className="text-[#C5C6C7] hover:text-[#66FCF1] transition-colors text-sm uppercase tracking-wider cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
