@@ -46,6 +46,7 @@ model Project {
   assigned          User?      @relation("AssignedApplicant", fields: [assignedId], references: [id])
   assignedId        Int?
   messages          Message[]
+  isFeatured        Boolean     @default(false)
 }
 
 model Application {
