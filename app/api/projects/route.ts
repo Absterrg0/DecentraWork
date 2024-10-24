@@ -14,6 +14,9 @@ export async function GET() {
         const userId = parseInt(session.user.id)
 
         const response = await client.project.findMany({
+            // where:{
+            //     assigned:null
+            // },
             include: {
                 client: {
                     select: {
@@ -68,6 +71,7 @@ export async function POST(req: NextRequest) {
         }
 
         const response = await client.project.create({
+
             data: {
                 title: body.title,
                 description: body.description,

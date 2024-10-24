@@ -23,7 +23,7 @@ interface User {
   bio: string | null
   walletAddressSOL: string
   walletAddressETH: string
-  projectsCreated: Project[]; // Added property
+  projectsCreated: Project[]
 }
 
 interface Project {
@@ -49,7 +49,7 @@ export default function Component() {
   const [isEditing, setIsEditing] = useState(false)
   const [editedUser, setEditedUser] = useState<User | null>(null)
   const [isOwner, setIsOwner] = useState(false)
-  const router = useRouter();
+  const router = useRouter()
 
   useEffect(() => {
     if (session?.user) {
@@ -99,12 +99,12 @@ export default function Component() {
   }
 
   if (isLoading) return (
-    <div className="flex justify-center items-center h-screen bg-[#222629]">
+    <div className="flex justify-center items-center h-screen bg-slate-900">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="text-[#86C232] text-2xl font-light"
+        className="text-blue-400 text-2xl font-light"
       >
         Loading...
       </motion.div>
@@ -112,7 +112,7 @@ export default function Component() {
   )
 
   if (error) return (
-    <div className="flex justify-center items-center h-screen bg-[#222629]">
+    <div className="flex justify-center items-center h-screen bg-slate-900">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -124,11 +124,11 @@ export default function Component() {
   )
 
   if (!user) return (
-    <div className="flex justify-center items-center h-screen bg-[#222629]">
+    <div className="flex justify-center items-center h-screen bg-slate-900">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center text-[#86C232] text-xl"
+        className="text-center text-blue-400 text-xl"
       >
         User not found
       </motion.div>
@@ -136,32 +136,32 @@ export default function Component() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#222629] via-[#2F3439] to-[#474B4F] text-[#C5C6C7] p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-200 p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto"
       >
-        <Card className="bg-[#2F3439] border-[#86C232] border-opacity-50 overflow-hidden shadow-lg">
+        <Card className="bg-slate-800/50 border-blue-500/20 backdrop-blur-sm overflow-hidden shadow-xl">
           <CardHeader className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#86C232] to-[#61892F] opacity-75" />
-            <div className="relative z-10 flex items-center space-x-4">
-              <Avatar className="w-24 h-24 border-4 border-[#86C232]">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 opacity-20" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+              <Avatar className="w-24 h-24 border-4 border-blue-500/50">
                 <AvatarImage src="/placeholder.svg?height=96&width=96" alt={user.name} />
-                <AvatarFallback className="bg-[#61892F] text-[#C5C6C7]">{user.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-blue-600 text-slate-100">{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
-              <div>
-                <CardTitle className="text-3xl font-bold text-[#C5C6C7]">{user.name}</CardTitle>
-                <p className="text-[#C5C6C7] opacity-80">{user.email}</p>
+              <div className="text-center md:text-left">
+                <CardTitle className="text-2xl md:text-3xl font-bold text-slate-100">{user.name}</CardTitle>
+                <p className="text-slate-300 opacity-80">{user.email}</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="mt-6">
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2 bg-[#474B4F]">
-                <TabsTrigger value="profile" className="data-[state=active]:bg-[#86C232] data-[state=active]:text-[#222629]">Profile</TabsTrigger>
-                <TabsTrigger value="projects" className="data-[state=active]:bg-[#86C232] data-[state=active]:text-[#222629]">Projects</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-slate-700/50">
+                <TabsTrigger value="profile" className="data-[state=active]:bg-blue-500 data-[state=active]:text-slate-100">Profile</TabsTrigger>
+                <TabsTrigger value="projects" className="data-[state=active]:bg-blue-500 data-[state=active]:text-slate-100">Projects</TabsTrigger>
               </TabsList>
               <TabsContent value="profile">
                 {isEditing && isOwner ? (
@@ -171,71 +171,75 @@ export default function Component() {
                     className="space-y-4"
                   >
                     <div>
-                      <Label htmlFor="name" className="text-[#86C232]">Name</Label>
+                      <Label htmlFor="name" className="text-blue-400">Name</Label>
                       <Input
                         id="name"
                         name="name"
                         value={editedUser?.name || ''}
                         onChange={handleChange}
-                        className="bg-[#474B4F] border-[#86C232] text-[#C5C6C7] focus:border-[#61892F]"
+                        className="bg-slate-700/50 border-blue-500/50 text-slate-200 focus:border-blue-400"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="bio" className="text-[#86C232]">Bio</Label>
+                      <Label htmlFor="bio" className="text-blue-400">Bio</Label>
                       <Textarea
                         id="bio"
                         name="bio"
                         rows={5}
                         value={editedUser?.bio || ''}
                         onChange={handleChange}
-                        className="bg-[#474B4F] border-[#86C232] text-[#C5C6C7] focus:border-[#61892F]"
+                        className="bg-slate-700/50 border-blue-500/50 text-slate-200 focus:border-blue-400"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="experience" className="text-[#86C232]">Experience Level</Label>
-                      <Input
-                        id="experience"
-                        name="experience"
-                        value={editedUser?.experience || ''}
-                        onChange={handleChange}
-                        className="bg-[#474B4F] border-[#86C232] text-[#C5C6C7] focus:border-[#61892F]"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="experience" className="text-blue-400">Experience Level</Label>
+                        <Input
+                          id="experience"
+                          name="experience"
+                          value={editedUser?.experience || ''}
+                          onChange={handleChange}
+                          className="bg-slate-700/50 border-blue-500/50 text-slate-200 focus:border-blue-400"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="skills" className="text-blue-400">Skills (comma-separated)</Label>
+                        <Input
+                          id="skills"
+                          name="skills"
+                          value={editedUser?.skills?.join(', ') || ''}
+                          onChange={(e) => setEditedUser(prev => prev ? { ...prev, skills: e.target.value.split(',').map(skill => skill.trim()) } : null)}
+                          className="bg-slate-700/50 border-blue-500/50 text-slate-200 focus:border-blue-400"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="skills" className="text-[#86C232]">Skills (comma-separated)</Label>
-                      <Input
-                        id="skills"
-                        name="skills"
-                        value={editedUser?.skills?.join(', ') || ''}
-                        onChange={(e) => setEditedUser(prev => prev ? { ...prev, skills: e.target.value.split(',').map(skill => skill.trim()) } : null)}
-                        className="bg-[#474B4F] border-[#86C232] text-[#C5C6C7] focus:border-[#61892F]"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="SOLAddress" className="text-[#86C232]">Solana Wallet Address</Label>
-                      <Input
-                        id="SOLAddress"
-                        name="walletAddressSOL"
-                        value={editedUser?.walletAddressSOL || ''}
-                        onChange={handleChange}
-                        className="bg-[#474B4F] border-[#86C232] text-[#C5C6C7] focus:border-[#61892F]"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ETHAddress" className="text-[#86C232]">Ethereum Wallet Address</Label>
-                      <Input
-                        id="ETHAddress"
-                        name="walletAddressETH"
-                        value={editedUser?.walletAddressETH || ''}
-                        onChange={handleChange}
-                        className="bg-[#474B4F] border-[#86C232] text-[#C5C6C7] focus:border-[#61892F]"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="SOLAddress" className="text-blue-400">Solana Wallet Address</Label>
+                        <Input
+                          id="SOLAddress"
+                          name="walletAddressSOL"
+                          value={editedUser?.walletAddressSOL || ''}
+                          onChange={handleChange}
+                          className="bg-slate-700/50 border-blue-500/50 text-slate-200 focus:border-blue-400"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="ETHAddress" className="text-blue-400">Ethereum Wallet Address</Label>
+                        <Input
+                          id="ETHAddress"
+                          name="walletAddressETH"
+                          value={editedUser?.walletAddressETH || ''}
+                          onChange={handleChange}
+                          className="bg-slate-700/50 border-blue-500/50 text-slate-200 focus:border-blue-400"
+                        />
+                      </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button onClick={handleSave} className="bg-[#86C232] hover:bg-[#61892F] text-[#222629]">
+                      <Button onClick={handleSave} className="bg-blue-500 hover:bg-blue-600 text-slate-100">
                         <Save className="mr-2 h-4 w-4" /> Save
                       </Button>
-                      <Button onClick={handleCancel} variant="destructive" className="border-[#86C232] text-[#C5C6C7] hover:bg-red-800">
+                      <Button onClick={handleCancel} variant="destructive" className="bg-red-500/10 hover:bg-red-500/20 text-red-500">
                         <X className="mr-2 h-4 w-4" /> Cancel
                       </Button>
                     </div>
@@ -244,40 +248,44 @@ export default function Component() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="space-y-4"
+                    className="space-y-6"
                   >
-                    <div>
-                      <Label className="text-[#86C232]">Bio</Label>
-                      <p className="text-[#C5C6C7] break-words">{user.bio || 'No bio available'}</p>
+                    <div className="bg-slate-700/30 p-4 rounded-lg">
+                      <Label className="text-blue-400 block mb-2">Bio</Label>
+                      <p className="text-slate-300 break-words">{user.bio || 'No bio available'}</p>
                     </div>
-                    <div>
-                      <Label className="text-[#86C232]">Experience Level</Label>
-                      <p className="text-[#C5C6C7]">{user.experience || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <Label className="text-[#86C232]">Skills</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {user.skills && user.skills.length > 0 ? (
-                          user.skills.map((skill, index) => (
-                            <Badge key={index} variant="secondary" className="bg-[#61892F] text-[#C5C6C7]">
-                              {skill}
-                            </Badge>
-                          ))
-                        ) : (
-                          <p className="text-[#C5C6C7]">No skills specified</p>
-                        )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-slate-700/30 p-4 rounded-lg">
+                        <Label className="text-blue-400 block mb-2">Experience Level</Label>
+                        <p className="text-slate-300">{user.experience || 'Not specified'}</p>
+                      </div>
+                      <div className="bg-slate-700/30 p-4 rounded-lg">
+                        <Label className="text-blue-400 block mb-2">Skills</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {user.skills && user.skills.length > 0 ? (
+                            user.skills.map((skill, index) => (
+                              <Badge key={index} variant="secondary" className="bg-blue-500/20 text-blue-300">
+                                {skill}
+                              </Badge>
+                            ))
+                          ) : (
+                            <p className="text-slate-300">No skills specified</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <Label className="text-[#86C232]">Solana Wallet Address</Label>
-                      <p className="text-[#C5C6C7]">{user.walletAddressSOL || 'Not specified'}</p>
-                    </div>
-                    <div>
-                      <Label className="text-[#86C232]">Ethereum Wallet Address</Label>
-                      <p className="text-[#C5C6C7]">{user.walletAddressETH || 'Not specified'}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-slate-700/30 p-4 rounded-lg">
+                        <Label className="text-blue-400 block mb-2">Solana Wallet</Label>
+                        <p className="text-slate-300 break-all">{user.walletAddressSOL || 'Not specified'}</p>
+                      </div>
+                      <div className="bg-slate-700/30 p-4 rounded-lg">
+                        <Label className="text-blue-400 block mb-2">Ethereum Wallet</Label>
+                        <p className="text-slate-300 break-all">{user.walletAddressETH || 'Not specified'}</p>
+                      </div>
                     </div>
                     {isOwner && (
-                      <Button onClick={handleEdit} className="bg-[#86C232] hover:bg-[#61892F] text-[#222629]">
+                      <Button onClick={handleEdit} className="bg-blue-500 hover:bg-blue-600 text-slate-100">
                         <Edit2 className="mr-2 h-4 w-4" /> Edit Profile
                       </Button>
                     )}
@@ -285,13 +293,13 @@ export default function Component() {
                 )}
               </TabsContent>
               <TabsContent value="projects">
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {user.projectsCreated.length === 0 ? (
                     <motion.p
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
-                      className="text-center text-[#86C232] text-xl"
+                      className="text-center text-blue-400 text-xl"
                     >
                       No projects created
                     </motion.p>
@@ -303,56 +311,66 @@ export default function Component() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <Card className="bg-[#474B4F] border-[#86C232] border-opacity-50">
+                        <Card className="bg-slate-700/30 border-blue-500/20">
                           <CardHeader>
-                            <CardTitle className="text-xl flex items-center text-[#86C232]">
-                              <Briefcase className="mr-2 h-5 w-5 text-[#61892F]" />
+                            <CardTitle className="text-xl flex items-center text-blue-400">
+                              <Briefcase className="mr-2 h-5 w-5 text-blue-500" />
                               {project.title}
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-[#C5C6C7] mb-4">{project.description}</p>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                              <div className="flex items-center">
-                                <DollarSign className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">Budget: ${project.budget}</span>
+                            <p className="text-slate-300 mb-6">{project.description}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div className="flex items-center bg-slate-800/50 p-3 rounded-lg">
+                                <DollarSign className="mr-2 h-5 w-5 text-blue-400" />
+                                <span className="text-slate-300">Budget: ${project.budget}</span>
                               </div>
-                              <div className="flex items-center">
-                                <Calendar className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">Time: {project.timeExpected || 'Not specified'}</span>
+                              <div className="flex items-center bg-slate-800/50 p-3 rounded-lg">
+                                <Calendar className="mr-2 h-5 w-5 text-blue-400" />
+                                <span className="text-slate-300">Time: {project.timeExpected || 'Not specified'}</span>
                               </div>
-                              <div className="flex items-center">
-                                <User className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">Experience: {project.experienceReq}</span>
+                              <div className="flex items-center bg-slate-800/50 p-3 rounded-lg">
+                                <User className="mr-2 h-5 w-5 text-blue-400" />
+                                <span className="text-slate-300">Experience: {project.experienceReq}</span>
                               </div>
                             </div>
-                            <div className="mb-4">
-                              <Label className="text-[#86C232]">Required Skills</Label>
-                              <div className="flex flex-wrap gap-2 mt-2">
+                            <div className="mb-6">
+                              <Label className="text-blue-400 block mb-2">Required Skills</Label>
+                              <div className="flex flex-wrap gap-2">
                                 {project.skillsRequired && project.skillsRequired.length > 0 ? (
                                   project.skillsRequired.map((skill, index) => (
-                                    <Badge key={index} variant="secondary" className="bg-[#61892F] text-[#C5C6C7]">
+                                    <Badge key={index} variant="secondary" className="bg-blue-500/20 text-blue-300">
                                       {skill}
                                     </Badge>
                                   ))
                                 ) : (
-                                  <p className="text-[#C5C6C7]">No specific skills required</p>
+                                  <p className="text-slate-300">No specific skills required</p>
                                 )}
                               </div>
                             </div>
-                            <div>
-                              <Label className="text-[#86C232]">Client</Label>
-                              <div className="flex items-center mt-2">
-                                <User className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7] mr-4">{project.client.name}</span>
-                                <Mail className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">{project.client.email}</span>
+                            <div className="bg-slate-800/50 p-4 rounded-lg mb-6">
+                              <Label className="text-blue-400 block mb-2">Client Information</Label>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex items-center">
+                                  <User className="mr-2 h-5 w-5 text-blue-400" />
+                                  <span className="text-slate-300">{project.client.name}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Mail className="mr-2 h-5 w-5 text-blue-400" />
+                                  <span className="text-slate-300">{project.client.email}</span>
+                                </div>
                               </div>
                             </div>
-                            <div>
+                            <div className="flex justify-end p-2">
+                            <button
+                                onClick={() => router.push(`/projects/${project.id}/feature`)}
+                                className="bg-blue-500 hover:bg-blue-600 text-slate-100 mx-3 py-2 px-6 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                              >
+                                Feature Project
+                              </button>
                               <button
                                 onClick={() => router.push(`/projects/${project.id}/proposals`)}
-                                className="bg-[#86C232] hover:bg-[#61892F] text-[#222629] py-2 px-4 rounded transition"
+                                className="bg-blue-500 hover:bg-blue-600 text-slate-100 py-2 px-6 rounded-lg transition-colors duration-200 flex items-center space-x-2"
                               >
                                 View Proposals
                               </button>
