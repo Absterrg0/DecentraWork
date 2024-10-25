@@ -63,6 +63,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         experienceReq: project.experienceReq,
         skillsRequired: project.skillsRequired,
         client: project.client, // Include the client details in the response
+        
       },
     });
 

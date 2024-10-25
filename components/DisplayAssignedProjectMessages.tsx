@@ -1,15 +1,17 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { MessageCircle, User, Send, ChevronRight, Loader2 } from 'lucide-react'
-
+import { MessageCircle, User, Send, ChevronRight, Loader2,CheckCircle,DollarSign } from 'lucide-react'
+import { Badge } from './ui/badge'
+import { Card,CardContent } from './ui/card'
+import { AlertDialog,AlertDialogDescription,AlertDialogContent,AlertDialogHeader,AlertDialogCancel,AlertDialogFooter,AlertDialogTitle,AlertDialogAction } from './ui/alert-dialog'
 type UserDetails = {
   id: number
   name: string
@@ -21,6 +23,7 @@ type Project = {
   title: string
   client: UserDetails
   assigned: UserDetails
+  isCompleted:boolean
 }
 
 type Message = {
@@ -87,8 +90,9 @@ export default function AssignedProjectComponent() {
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [showCollectMoneyDialog, setShowCollectMoneyDialog] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
+  const router = useRouter();
   const { id } = useParams()
 
   useEffect(() => {
@@ -132,6 +136,9 @@ export default function AssignedProjectComponent() {
     }
   }
 
+  const handleCollectMoney = async () => {
+    router.push('/collect-money')
+  }
   const initializeWebSocket = () => {
     setIsConnecting(true)
     const PORT = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '8080'
@@ -203,135 +210,154 @@ export default function AssignedProjectComponent() {
   }
 
   return (
-    <motion.div 
-      className="flex h-full bg-[#222629] text-gray-300"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div 
-        className="w-1/4 border-r border-[#86C232] p-4"
-        initial={{ x: -50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <h2 className="text-xl font-bold mb-4 text-[#86C232]">Assigned Projects</h2>
-        <ScrollArea className="h-[calc(100vh-6rem)]">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <Loader2 className="h-8 w-8 animate-spin text-[#86C232]" />
+    <div className="flex h-screen bg-[#0a0b0d] text-gray-100">
+      <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNGM0LjQxOCAwIDgtMy41ODIgOC04cy0zLjU4Mi04LTgtOC04IDMuNTgyLTggOCAzLjU4MiA4IDggOHoiIHN0cm9rZT0iIzFhMWIxZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-5 pointer-events-none"></div>
+      
+      <div className="w-1/4 border-r border-gray-800 p-4 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-2xl font-bold mb-6 text-indigo-400">Assigned Projects</h2>
+          <ScrollArea className="h-[calc(100vh-8rem)]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+              </div>
+            ) : (
+              <AnimatePresence>
+                {projects.map((project) => (
+                  <motion.div
+                    key={project.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className={`flex items-center justify-between p-4 mb-3 rounded-lg cursor-pointer transition-all duration-300 ${
+                      selectedProject?.id === project.id ? 'bg-indigo-900/30' : 'hover:bg-[#1a1b1e]'
+                    }`}
+                    onClick={() => setSelectedProject(project)}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium text-indigo-300">{project.title}</span>
+                      <span className="text-xs text-gray-400">{project.client.name}</span>
+                    </div>
+                    {project.isCompleted ? (
+                      <CheckCircle className="h-5 w-5 text-indigo-500" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-indigo-500" />
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+          </ScrollArea>
+        </motion.div>
+      </div>
+      
+      <div className="flex-1 flex flex-col p-6 overflow-hidden">
+        {selectedProject ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="h-full flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-indigo-400 flex items-center">
+                <MessageCircle className="mr-3 h-6 w-6" />
+                Chat with {selectedProject.client.name}
+              </h2>
+              <div className="flex items-center space-x-4">
+                {selectedProject.isCompleted && (
+                  <Button 
+                    variant="outline" 
+                    className="bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 border-indigo-500/50"
+                    onClick={handleCollectMoney}
+                  >
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    Collect Money
+                  </Button>
+                )}
+                {isConnecting && (
+                  <motion.span 
+                    className="text-sm text-indigo-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    Connecting...
+                  </motion.span>
+                )}
+              </div>
             </div>
-          ) : (
-            <AnimatePresence>
-              {projects.map((project) => (
-                <motion.div
-                  key={project.id}
+            <Card className="flex-1 bg-[#1a1b1e] border-gray-800 rounded-xl overflow-hidden">
+              <CardContent className="p-6 flex flex-col h-full">
+                <ScrollArea className="flex-1 pr-4 mb-4">
+                  <AnimatePresence>
+                    {messages.map((message, index) => {
+                      const isFreelancer = message.senderId === selectedProject.assigned.id
+                      const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId
+                      return (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className={`flex ${isFreelancer ? 'justify-end' : 'justify-start'} mb-4`}
+                        >
+                          {!isFreelancer && showAvatar && (
+                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-3">
+                              <User className="h-4 w-4 text-indigo-100" />
+                            </div>
+                          )}
+                          <div
+                            className={`max-w-[70%] p-3 rounded-lg ${
+                              isFreelancer ? 'bg-indigo-600 text-indigo-100' : 'bg-[#2a2b2e] text-gray-300'
+                            }`}
+                          >
+                            <MessageContent content={message.content} />
+                          </div>
+                          {isFreelancer && showAvatar && (
+                            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center ml-3">
+                              <User className="h-4 w-4 text-indigo-100" />
+                            </div>
+                          )}
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
+                  <div ref={messagesEndRef} />
+                </ScrollArea>
+                <Separator className="my-4 bg-gray-800" />
+                <motion.div 
+                  className="flex items-center mt-2"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-300 ${
-                    selectedProject?.id === project.id ? 'bg-[#474B4F]' : 'hover:bg-[#2F3439]'
-                  }`}
-                  onClick={() => setSelectedProject(project)}
                 >
-                  <div className="flex flex-col">
-                    <span className="font-medium text-[#86C232]">{project.title}</span>
-                    <span className="text-xs text-gray-400">{project.client.name}</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[#86C232]" />
+                  <Input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder={selectedProject.isCompleted ? "Project completed. No new messages allowed." : "Type your message..."}
+                    disabled={!socket || socket.readyState !== WebSocket.OPEN || selectedProject.isCompleted}
+                    className="flex-grow mr-3 bg-[#2a2b2e] text-gray-300 border-gray-700 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-500"
+                  />
+                  <Button 
+                    onClick={sendMessage}
+                    disabled={!socket || socket.readyState !== WebSocket.OPEN || selectedProject.isCompleted}
+                    className="bg-indigo-600 text-indigo-100 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
                 </motion.div>
-              ))}
-            </AnimatePresence>
-          )}
-        </ScrollArea>
-      </motion.div>
-      <motion.div 
-        className="flex-1 flex flex-col p-4"
-        initial={{ x: 50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        {selectedProject ? (
-          <>
-            <h2 className="text-2xl font-bold mb-4 text-[#86C232] flex items-center">
-              <MessageCircle className="mr-2 h-6 w-6" />
-              Chat with {selectedProject.client.name}
-              {isConnecting && (
-                <motion.span 
-                  className="ml-2 text-sm text-gray-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  (Connecting...)
-                </motion.span>
-              )}
-            </h2>
-            <div className="flex-1 bg-[#2F3439] rounded-lg p-4 flex flex-col">
-              <ScrollArea className="flex-1 pr-4">
-                <AnimatePresence>
-                  {messages.map((message, index) => {
-                    const isFreelancer = message.senderId === selectedProject.assigned.id
-                    const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId
-                    return (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className={`flex ${isFreelancer ? 'justify-end' : 'justify-start'} mb-4`}
-                      >
-                        {!isFreelancer && showAvatar && (
-                          <div className="w-8 h-8 rounded-full bg-[#86C232] flex items-center justify-center mr-2">
-                            <User className="h-4 w-4 text-[#222629]" />
-                          </div>
-                        )}
-                        <div
-                          className={`max-w-[70%] p-3 rounded-lg ${
-                            isFreelancer ? 'bg-[#86C232] text-[#222629]' : 'bg-[#474B4F] text-gray-300'
-                          }`}
-                        >
-                          <MessageContent content={message.content} />
-                        </div>
-                        {isFreelancer && showAvatar && (
-                          <div className="w-8 h-8 rounded-full bg-[#61892F] flex items-center justify-center ml-2">
-                            <User className="h-4 w-4 text-[#222629]" />
-                          </div>
-                        )}
-                      </motion.div>
-                    )
-                  })}
-                </AnimatePresence>
-                <div ref={messagesEndRef} />
-              </ScrollArea>
-              <Separator className="my-4" />
-              <motion.div 
-                className="flex items-center mt-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  disabled={!socket || socket.readyState !== WebSocket.OPEN}
-                  className="flex-grow mr-2 bg-[#474B4F] text-gray-300 border-[#86C232] focus:ring-[#86C232] focus:border-[#86C232]"
-                />
-                <Button 
-                  onClick={sendMessage}
-                  disabled={!socket || socket.readyState !== WebSocket.OPEN}
-                  className="bg-[#86C232] text-[#222629] hover:bg-[#61892F] disabled:opacity-50"
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
-              </motion.div>
-            </div>
-          </>
+              </CardContent>
+            </Card>
+          </motion.div>
         ) : (
           <motion.div 
             className="flex-1 flex items-center justify-center"
@@ -340,12 +366,12 @@ export default function AssignedProjectComponent() {
             transition={{ duration: 0.5 }}
           >
             <div className="text-center">
-              <MessageCircle className="h-16 w-16 text-[#86C232] mx-auto mb-4" />
-              <p className="text-xl">Select a project to start chatting</p>
+              <MessageCircle className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
+              <p className="text-xl text-gray-400">Select a project to start chatting</p>
             </div>
           </motion.div>
         )}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }

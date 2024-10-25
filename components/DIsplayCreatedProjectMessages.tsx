@@ -1,15 +1,18 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { MessageCircle, User, Send, ChevronRight, Loader2 } from 'lucide-react'
-
+import { MessageCircle, User, Send, ChevronRight, Loader2,CheckCircle} from 'lucide-react'
+import { AlertDialog,AlertDialogDescription,AlertDialogContent,AlertDialogHeader,AlertDialogCancel,AlertDialogFooter,AlertDialogTitle,AlertDialogAction } from './ui/alert-dialog'
+import { Card,CardContent,CardDescription } from './ui/card'
+import { Badge } from './ui/badge'
+import { Textarea } from './ui/textarea'
 type UserDetails = {
   id: number
   name: string
@@ -21,6 +24,7 @@ type Project = {
   title: string
   client: UserDetails
   assigned: UserDetails
+  isCompleted:boolean
 }
 
 type Message = {
@@ -99,9 +103,10 @@ export default function CreatedProjectsMessagesComponent() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-
+  const [completeModal,setCompleteModal]=useState(false);
+  const [clientCompletionModal,setClientCompletionModal]=useState(false)
+  const [completionMessage,setCompletionMessage]=useState("")
   const { id } = useParams()
-
   useEffect(() => {
     fetchProjects()
   }, [id])
@@ -142,7 +147,41 @@ export default function CreatedProjectsMessagesComponent() {
       console.error('Error fetching project messages:', error)
     }
   }
-
+  const handleCompletionMessage = async () => {
+    try {
+      const response = await axios.put(`/api/projects/${id}/complete/client`, {completionMessage});
+      if (response.status === 200) {
+        console.log("Completion message sent successfully");
+      }
+    } catch (e) {
+      console.error("Failed to send completion message:", e);
+    }
+  };
+  
+  const handleComplete = async () => {
+    try {
+      const response = await axios.put(`/api/projects/${selectedProject?.id}/complete`);
+  
+      if (response.status === 200) {
+        // Update the project state locally to reflect completion
+        setSelectedProject(prev => prev ? { ...prev, isCompleted: true } : null);
+        setProjects(prev => prev.map(p => p.id === selectedProject?.id ? { ...p, isCompleted: true } : p));
+        setClientCompletionModal(true)
+  
+        // Close the WebSocket if open
+        if (socket?.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
+      } else {
+        console.error("Failed to complete the project.");
+      }
+    } catch (error) {
+      console.error("An error occurred while completing the project:", error);
+    } finally {
+      setCompleteModal(false);
+    }
+  };
+  
   const initializeWebSocket = () => {
     setIsConnecting(true)
     const PORT = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '8080'
@@ -214,135 +253,158 @@ export default function CreatedProjectsMessagesComponent() {
   }
 
   return (
-    <motion.div 
-      className="flex h-full bg-[#222629] text-gray-300"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div 
-        className="w-1/4 border-r border-[#86C232] p-4"
-        initial={{ x: -50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <h2 className="text-xl font-bold mb-4 text-[#86C232]">Projects</h2>
-        <ScrollArea className="h-[calc(100vh-6rem)]">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <Loader2 className="h-8 w-8 animate-spin text-[#86C232]" />
+    <div className="flex h-screen bg-[#0a0b0d] text-gray-100">
+      <div className="fixed inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAzNGM0LjQxOCAwIDgtMy41ODIgOC04cy0zLjU4Mi04LTgtOC04IDMuNTgyLTggOCAzLjU4MiA4IDggOHoiIHN0cm9rZT0iIzFhMWIxZSIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9nPjwvc3ZnPg==')] opacity-5 pointer-events-none"></div>
+      
+      <div className="w-1/4 border-r border-gray-800 p-4 overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-2xl font-bold mb-6 text-indigo-400">Projects</h2>
+          <ScrollArea className="h-[calc(100vh-8rem)]">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+              </div>
+            ) : (
+              <AnimatePresence>
+                {projects.map((project) => (
+                  <motion.div
+                    key={project.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className={`flex items-center justify-between p-4 mb-3 rounded-lg cursor-pointer transition-all duration-300 ${
+                      selectedProject?.id === project.id ? 'bg-indigo-900/30' : 'hover:bg-[#1a1b1e]'
+                    } ${project.isCompleted ? 'opacity-50' : ''}`}
+                    onClick={() => setSelectedProject(project)}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium text-indigo-300">{project.title}</span>
+                      <span className="text-xs text-gray-400">{project.assigned.name}</span>
+                    </div>
+                    {project.isCompleted ? (
+                      <CheckCircle className="h-5 w-5 text-indigo-500" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-indigo-500" />
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+          </ScrollArea>
+        </motion.div>
+      </div>
+      
+      <div className="flex-1 flex flex-col p-6 overflow-hidden">
+        {selectedProject ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="h-full flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-indigo-400 flex items-center">
+                <MessageCircle className="mr-3 h-6 w-6" />
+                Chat with {selectedProject.assigned.name}
+              </h2>
+              <div className="flex items-center space-x-4">
+                {!selectedProject.isCompleted && (
+                  <Button 
+                    variant="outline" 
+                    className="bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 border-indigo-500/50"
+                    onClick={() => setCompleteModal(true)}
+                  >
+                    Complete Project
+                  </Button>
+                )}
+                {selectedProject.isCompleted && (
+                  <Badge variant="secondary" className="bg-indigo-500/10 text-indigo-400 border-none">
+                    Completed
+                  </Badge>
+                )}
+                {isConnecting && (
+                  <motion.span 
+                    className="text-sm text-indigo-400"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    Connecting...
+                  </motion.span>
+                )}
+              </div>
             </div>
-          ) : (
-            <AnimatePresence>
-              {projects.map((project) => (
-                <motion.div
-                  key={project.id}
+            <Card className="flex-1 bg-[#1a1b1e] border-gray-800 rounded-xl overflow-hidden">
+              <CardContent className="p-6 flex flex-col h-full">
+                <ScrollArea className="flex-1 pr-4 mb-4">
+                  <AnimatePresence>
+                    {messages.map((message, index) => {
+                      const isClient = message.senderId === selectedProject.client.id
+                      const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId
+                      return (
+                        <motion.div
+                          key={message.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className={`flex ${isClient ? 'justify-end' : 'justify-start'} mb-4`}
+                        >
+                          {!isClient && showAvatar && (
+                            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center mr-3">
+                              <User className="h-4 w-4 text-indigo-100" />
+                            </div>
+                          )}
+                          <div
+                            className={`max-w-[70%] p-3 rounded-lg ${
+                              isClient ? 'bg-indigo-600 text-indigo-100' : 'bg-[#2a2b2e] text-gray-300'
+                            }`}
+                          >
+                            <MessageContent content={message.content} />
+                          </div>
+                          {isClient && showAvatar && (
+                            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center ml-3">
+                              <User className="h-4 w-4 text-indigo-100" />
+                            </div>
+                          )}
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
+                  <div ref={messagesEndRef} />
+                </ScrollArea>
+                <Separator className="my-4 bg-gray-800" />
+                <motion.div 
+                  className="flex items-center mt-2"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex items-center justify-between p-3 mb-2 rounded-lg cursor-pointer transition-colors duration-300 ${
-                    selectedProject?.id === project.id ? 'bg-[#474B4F]' : 'hover:bg-[#2F3439]'
-                  }`}
-                  onClick={() => setSelectedProject(project)}
                 >
-                  <div className="flex flex-col">
-                    <span className="font-medium text-[#86C232]">{project.title}</span>
-                    <span className="text-xs text-gray-400">{project.assigned.name}</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-[#86C232]" />
+                  <Input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder={selectedProject.isCompleted ? "Project Completed. No new messages allowed." : "Type your message..."}
+                    disabled={!socket || socket.readyState !== WebSocket.OPEN || selectedProject.isCompleted}
+                    className="flex-grow mr-3 bg-[#2a2b2e] text-gray-300 border-gray-700 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-500"
+                  />
+                  <Button 
+                    onClick={sendMessage}
+                    disabled={!socket || socket.readyState !== WebSocket.OPEN || selectedProject.isCompleted}
+                    className="bg-indigo-600 text-indigo-100 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="h-5 w-5" />
+                  </Button>
                 </motion.div>
-              ))}
-            </AnimatePresence>
-          )}
-        </ScrollArea>
-      </motion.div>
-      <motion.div 
-        className="flex-1 flex flex-col p-4"
-        initial={{ x: 50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        {selectedProject ? (
-          <>
-            <h2 className="text-2xl font-bold mb-4 text-[#86C232] flex items-center">
-              <MessageCircle className="mr-2 h-6 w-6" />
-              Chat with {selectedProject.assigned.name}
-              {isConnecting && (
-                <motion.span 
-                  className="ml-2 text-sm text-gray-400"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  (Connecting...)
-                </motion.span>
-              )}
-            </h2>
-            <div className="flex-1 bg-[#2F3439] rounded-lg p-4 flex flex-col">
-              <ScrollArea className="flex-1 pr-4">
-                <AnimatePresence>
-                  {messages.map((message, index) => {
-                    const isClient = message.senderId === selectedProject.client.id
-                    const showAvatar = index === 0 || messages[index - 1].senderId !== message.senderId
-                    return (
-                      <motion.div
-                        key={message.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className={`flex ${isClient ? 'justify-end' : 'justify-start'} mb-4`}
-                      >
-                        {!isClient && showAvatar && (
-                          <div className="w-8 h-8 rounded-full bg-[#86C232] flex items-center justify-center mr-2">
-                            <User className="h-4 w-4 text-[#222629]" />
-                          </div>
-                        )}
-                        <div
-                          className={`max-w-[70%] p-3 rounded-lg ${
-                            isClient ? 'bg-[#86C232] text-[#222629]' : 'bg-[#474B4F] text-gray-300'
-                          }`}
-                        >
-                          <MessageContent content={message.content} />
-                        </div>
-                        {isClient && showAvatar && (
-                          <div className="w-8 h-8 rounded-full bg-[#61892F] flex items-center justify-center ml-2">
-                            <User className="h-4 w-4 text-[#222629]" />
-                          </div>
-                        )}
-                      </motion.div>
-                    )
-                  })}
-                </AnimatePresence>
-                <div ref={messagesEndRef} />
-              </ScrollArea>
-              <Separator className="my-4" />
-              <motion.div 
-                className="flex items-center mt-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  disabled={!socket || socket.readyState !== WebSocket.OPEN}
-                  className="flex-grow mr-2 bg-[#474B4F] text-gray-300 border-[#86C232] focus:ring-[#86C232] focus:border-[#86C232]"
-                />
-                <Button 
-                  onClick={sendMessage}
-                  disabled={!socket || socket.readyState !== WebSocket.OPEN}
-                  className="bg-[#86C232] text-[#222629] hover:bg-[#61892F] disabled:opacity-50"
-                >
-                  <Send className="h-5 w-5" />
-                </Button>
-              </motion.div>
-            </div>
-          </>
+              </CardContent>
+            </Card>
+          </motion.div>
         ) : (
           <motion.div 
             className="flex-1 flex items-center justify-center"
@@ -351,12 +413,56 @@ export default function CreatedProjectsMessagesComponent() {
             transition={{ duration: 0.5 }}
           >
             <div className="text-center">
-              <MessageCircle className="h-16 w-16 text-[#86C232] mx-auto mb-4" />
-              <p className="text-xl">Select a project to start chatting</p>
+              <MessageCircle className="h-16 w-16 text-indigo-500 mx-auto mb-4" />
+              <p className="text-xl text-gray-400">Select a project to start chatting</p>
             </div>
           </motion.div>
         )}
-      </motion.div>
-    </motion.div>
+      </div>
+      
+      <AlertDialog open={completeModal} onOpenChange={setCompleteModal}>
+        <AlertDialogContent className="bg-[#1a1b1e] border border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-indigo-400">Complete this project?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              This action cannot be undone. The project will be marked as completed and all ongoing tasks will be finalized.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#2a2b2e] text-gray-300 hover:bg-[#3a3b3e]">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleComplete} className="bg-indigo-600 text-indigo-100 hover:bg-indigo-700">Complete Project</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={clientCompletionModal} onOpenChange={setClientCompletionModal}>
+      <AlertDialogContent className="bg-[#1a1b1e] border border-gray-800">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-indigo-400">Final words for freelancer</AlertDialogTitle>
+          <AlertDialogDescription className="text-gray-400">
+          Please describe the freelancer's work and how satisfied you were with their performance. (Leaving this field empty will indicate that the job was completed to your satisfaction.)
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="my-4">
+          <Textarea
+            value={completionMessage}
+            onChange={(e) => setCompletionMessage(e.target.value)}
+            placeholder="Share your thoughts about the completed project..."
+            className="bg-[#2a2b2e] text-gray-300 border-gray-700 focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px]"
+          />
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-[#2a2b2e] text-gray-300 hover:bg-[#3a3b3e]">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleCompletionMessage}
+            className="bg-indigo-600 text-indigo-100 hover:bg-indigo-700"
+          >
+            Submit Message
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </div>
   )
 }

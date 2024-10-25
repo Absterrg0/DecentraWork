@@ -32,21 +32,24 @@ model User {
 }
 
 model Project {
-  id                Int        @id @default(autoincrement())
-  title             String
-  description       String
-  budget            Int
-  timeExpected      String?
-  skillsRequired    String[]
-  experienceReq     String
-  createdAt         DateTime   @default(now())
-  client            User       @relation("ClientProjects", fields: [clientId], references: [id])
-  clientId          Int
-  applications      Application[]
-  assigned          User?      @relation("AssignedApplicant", fields: [assignedId], references: [id])
-  assignedId        Int?
-  messages          Message[]
-  isFeatured        Boolean     @default(false)
+  id                          Int         @id @default(autoincrement())
+  title                       String
+  description                 String
+  budget                      Int
+  timeExpected                String?
+  skillsRequired              String[]
+  experienceReq               String
+  createdAt                   DateTime    @default(now())
+  client                      User        @relation("ClientProjects", fields: [clientId], references: [id])
+  clientId                    Int
+  applications                Application[]
+  assigned                    User?       @relation("AssignedApplicant", fields: [assignedId], references: [id])
+  assignedId                  Int?
+  messages                    Message[]
+  isFeatured                  Boolean     @default(false)
+  isCompleted                 Boolean     @default(false)
+  clientCompletionMessage     String?     @default("")
+  assignedCompletetionMessage String?     @default("")
 }
 
 model Application {
