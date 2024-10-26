@@ -1,29 +1,32 @@
-'use client'
+'use client';
 
-import React from "react"
-import { Spotlight } from "./ui/spotlight"
-import { Button } from "./ui/button"
-import NavBar from "./Navbar"
-import { motion, Variants } from "framer-motion"
-import { Shield, Globe, DollarSign } from "lucide-react"
-import  DynamicBackground from "./ui/background"
+import React, { useEffect } from "react";
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { Spotlight } from "./ui/spotlight";
+import { Button } from "./ui/button";
+import NavBar from "./Navbar";
+import { motion, Variants } from "framer-motion";
+import { Shield, Globe, DollarSign } from "lucide-react";
+import DynamicBackground from "./ui/background";
+
 const fadeIn: Variants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-}
+};
 
 const staggerChildren: Variants = {
   animate: {
     transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 interface FeatureCardProps {
-  icon: React.ElementType
-  title: string
-  description: string
+  icon: React.ElementType;
+  title: string;
+  description: string;
 }
 
 const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description }) => (
@@ -36,13 +39,28 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, descriptio
     <h3 className="text-xl font-semibold text-[#66FCF1]">{title}</h3>
     <p className="text-sm text-[#C5C6C7] mt-2">{description}</p>
   </motion.div>
-)
+);
 
 const LandingPage: React.FC = () => {
+  const {status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to dashboard if the user is authenticated
+    if (status === 'authenticated') {
+      router.push('/dashboard');
+    }
+  }, [status, router]);
+
+  // Render loading state while checking session status
+  if (status === 'loading') {
+    return <div className="flex items-center justify-center min-h-screen bg-[0x0B0C10] "></div>; // You can replace this with a spinner or loading animation
+  }
+
   return (
     <div className="min-h-screen w-full flex md:items-center md:justify-center antialiased relative overflow-hidden">
       <DynamicBackground /> {/* Dynamic background with color */}
-      <Spotlight></Spotlight>
+      <Spotlight />
       <NavBar />
       <div className="p-4 max-w-7xl mx-auto relative z-10 w-full pt-20 md:pt-0">
         <motion.div
@@ -78,6 +96,7 @@ const LandingPage: React.FC = () => {
               variant="default" 
               size="lg" 
               className="bg-[#66FCF1] text-[#1F2833] hover:bg-[#45A29E] transition duration-300 ease-in-out rounded-full shadow-lg transform hover:scale-105"
+              onClick={() => router.push('/api/auth/signin')} // Redirect to sign in
             >
               Get Started
             </Button>
@@ -105,8 +124,7 @@ const LandingPage: React.FC = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-
-export default LandingPage
+export default LandingPage;

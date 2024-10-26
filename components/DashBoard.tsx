@@ -326,21 +326,21 @@ export default function DashboardComponent() {
                 <DropdownMenuContent className="w-56 mt-2 bg-[#1a1b1e] border border-gray-800 rounded-xl shadow-xl">
                   <DropdownMenuItem onClick={handleMyProfile} className="hover:bg-[#2a2b2e] focus:bg-[#2a2b2e]">
                     <User className="mr-2 h-4 w-4 text-indigo-500" />
-                    <span>Profile</span>
+                    <span className='text-zinc-300'>Profile</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleMyProposals} className="hover:bg-[#2a2b2e] focus:bg-[#2a2b2e]">
                     <Briefcase className="mr-2 h-4 w-4 text-indigo-500" />
-                    <span>My Proposals</span>
+                    <span className='text-zinc-300'>My Proposals</span>
                   </DropdownMenuItem>
                   {isProfileComplete === false && (
                     <DropdownMenuItem onClick={() => setShowProfileModal(true)} className="hover:bg-[#2a2b2e] focus:bg-[#2a2b2e]">
                       <AlertCircle className="mr-2 h-4 w-4 text-red-500" />
-                      <span>Complete Profile</span>
+                      <span className='text-zinc-300'>Complete Profile</span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={handleSignOut} className="hover:bg-[#2a2b2e] focus:bg-[#2a2b2e]">
                     <LogOut className="mr-2 h-4 w-4 text-indigo-500" />
-                    <span>Logout</span>
+                    <span className='text-zinc-300'>Logout</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
