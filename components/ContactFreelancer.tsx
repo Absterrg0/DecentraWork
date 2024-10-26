@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,7 +36,7 @@ export default function ContactFreelancerComponent() {
     fetchProjectDetails()
 
     // Initialize WebSocket connection
-    const ws = new WebSocket(`ws://localhost:8080`)
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_URL!)
     setSocket(ws)
 
     ws.onopen = () => {
@@ -67,7 +67,7 @@ export default function ContactFreelancerComponent() {
     scrollToBottom()
   }, [messages])
 
-  const fetchProjectDetails = async () => {
+  const fetchProjectDetails = useCallback( async () => {
     try {
       const response = await axios.get(`/api/projects/${id}/messages`)
       setMessages(response.data.messages)
@@ -76,7 +76,7 @@ export default function ContactFreelancerComponent() {
     } catch (error) {
       console.error('Error fetching project details:', error)
     }
-  }
+  },[projectId])
 
   const sendMessage = () => {
     if (newMessage.trim() && socket && socket.readyState === WebSocket.OPEN) {

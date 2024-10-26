@@ -20,7 +20,7 @@ const suggestedSkills = [
   "JavaScript", "React", "Node.js", "Python", "Java", "C++", "Ruby", "PHP",
   "Swift", "Kotlin", "Go", "Rust", "TypeScript", "SQL", "MongoDB", "AWS",
   "Docker", "Kubernetes", "Machine Learning", "Data Science", "UI/UX Design",
-  "GraphQL", "REST API", "Vue.js", "Angular", "Flutter", "React Native"
+  "GraphQL", "REST API", "Vue.js", "Angular", "Flutter", "React Native","NextJs"
 ];
 
 export default function CreateProject() {
@@ -261,7 +261,7 @@ export default function CreateProject() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
-            <label className="block text-sm font-medium text-amber-300 mb-1">Required Skills</label>
+            <label className="block text-sm font-medium text-amber-300 mb-1 ">Required Skills</label>
             <div className="flex flex-wrap gap-2 mb-2">
               <AnimatePresence>
                 {formData.skillsRequired.map((skill) => (
@@ -270,7 +270,7 @@ export default function CreateProject() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
-                    className="bg-amber-500 text-gray-900 px-3 py-1 rounded-full text-sm flex items-center"
+                    className="bg-amber-500 text-gray-900 px-3 z-50 py-1 rounded-full text-sm flex items-center"
                   >
                     {skill}
                     <button

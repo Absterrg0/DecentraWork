@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, DollarSign, Briefcase, LogOut, Filter, Sparkles, PlusCircle, AlertCircle, MessageSquare, BarChart, Eye, Clock, Tag, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -56,13 +56,29 @@ export default function DashboardComponent() {
   const [isProfileComplete, setIsProfileComplete] = useState<boolean | null>(null);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [featuredProjects,setFeaturedProjects]=useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchProjects();
-    checkProfileCompletion();
-    fetchAssignedProjects();
-    fetchCreatedProjects();
-    fetchFeaturedProjects();
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchProjects(),
+          checkProfileCompletion(),
+          fetchAssignedProjects(),
+          fetchCreatedProjects(),
+          fetchFeaturedProjects()
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (status === "authenticated") {
+      loadData();
+    }
   }, [session]);
 
   const handleSignOut = async () => {
@@ -93,7 +109,7 @@ export default function DashboardComponent() {
   };
   
   
-  const fetchAssignedProjects = async () => {
+  const fetchAssignedProjects = useCallback( async () => {
     if (status === "authenticated" && session?.user?.id) {
       try {
         const response = await axios.get(`/api/user/account/${session.user.id}/assigned-projects`);
@@ -102,9 +118,9 @@ export default function DashboardComponent() {
         console.error(e);
       }
     }
-  };
+  },[session]);
 
-  const fetchCreatedProjects = async () => {
+  const fetchCreatedProjects = useCallback(async () => {
     if (status === "authenticated" && session?.user?.id) {
       try {
         const response = await axios.get(`/api/user/account/${session.user.id}/created-projects`);
@@ -113,9 +129,9 @@ export default function DashboardComponent() {
         console.error(e);
       }
     }
-  };
+  },[session]);
 
-  const checkProfileCompletion = async () => {
+  const checkProfileCompletion = useCallback( async () => {
     if (status === "authenticated" && session?.user?.id) {
       try {
         const response = await axios.get(`/api/user/account/${session.user.id}`);
@@ -129,7 +145,7 @@ export default function DashboardComponent() {
     } else {
       setIsProfileComplete(null);
     }
-  };
+  },[session]);
 
   const handleCreateProject = () => {
     router.push('/projects/create');
@@ -175,6 +191,74 @@ export default function DashboardComponent() {
     router.push(`/user/${session?.user.id}`)
   }
 
+
+  const FeaturedProjectSkeleton = () => (
+    <div className="animate-pulse">
+      <Card className="bg-[#1a1b1e] border border-gray-800 rounded-xl overflow-hidden h-full">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div className="h-6 w-20 bg-gray-700 rounded-full" />
+            <div className="h-4 w-24 bg-gray-700 rounded-full" />
+          </div>
+          <div className="h-6 w-3/4 bg-gray-700 rounded-full mt-3" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-16 w-full bg-gray-700 rounded mb-4" />
+          <div className="flex gap-2 mb-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-6 w-16 bg-gray-700 rounded-full" />
+            ))}
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="h-4 w-20 bg-gray-700 rounded-full" />
+            <div className="h-4 w-24 bg-gray-700 rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+  
+  const ProjectCardSkeleton = () => (
+    <Card className="bg-transparent border-b border-gray-800/50">
+      <CardHeader className="p-4 pb-2">
+        <div className="flex justify-between items-start gap-4">
+          <div className="flex-1 space-y-2">
+            <div className="h-5 bg-gray-700 rounded-full w-3/4 animate-pulse" />
+            <div className="h-4 bg-gray-700 rounded-full w-full animate-pulse" />
+          </div>
+          <div className="h-6 w-24 bg-gray-700 rounded-full animate-pulse" />
+        </div>
+      </CardHeader>
+      <CardContent className="p-4 pt-2">
+        <div className="grid grid-cols-3 gap-4 mb-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-4 bg-gray-700 rounded-full animate-pulse" />
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-6 w-16 bg-gray-700 rounded-full animate-pulse" />
+          ))}
+        </div>
+        <div className="flex justify-end">
+          <div className="h-8 w-24 bg-gray-700 rounded-full animate-pulse" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+  
+  const SidebarProjectSkeleton = () => (
+    <div className="p-4 flex justify-between items-center animate-pulse">
+      <div className="flex items-center space-x-3">
+        <div className="h-9 w-9 bg-gray-700 rounded-full" />
+        <div className="h-4 w-32 bg-gray-700 rounded-full" />
+      </div>
+      <div className="flex space-x-2">
+        <div className="h-8 w-8 bg-gray-700 rounded-full" />
+        <div className="h-8 w-8 bg-gray-700 rounded-full" />
+      </div>
+    </div>
+  );
   const filteredProjects = projects.filter(project =>
     (project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.description.toLowerCase().includes(searchTerm.toLowerCase())) &&
@@ -246,7 +330,7 @@ export default function DashboardComponent() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleMyProposals} className="hover:bg-[#2a2b2e] focus:bg-[#2a2b2e]">
                     <Briefcase className="mr-2 h-4 w-4 text-indigo-500" />
-                    <span>My Projects</span>
+                    <span>My Proposals</span>
                   </DropdownMenuItem>
                   {isProfileComplete === false && (
                     <DropdownMenuItem onClick={() => setShowProfileModal(true)} className="hover:bg-[#2a2b2e] focus:bg-[#2a2b2e]">
@@ -282,7 +366,12 @@ export default function DashboardComponent() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  {featuredProjects.length > 0 ? (
+
+  { isLoading ? (
+                    Array(2).fill(0).map((_, i) => (
+                      <FeaturedProjectSkeleton key={i} />
+                    ))
+                  ) :(featuredProjects.length > 0 ? (
     featuredProjects.slice(0, 2).map((project) => (
       <motion.div
         key={project.id}
@@ -339,7 +428,7 @@ export default function DashboardComponent() {
         Feature Your Project
       </Button>
     </div>
-  )}
+  ))}
 </div>
 
               </motion.div>
@@ -417,7 +506,11 @@ export default function DashboardComponent() {
                 <div className="lg:w-3/4">
                   <h2 className="text-2xl font-bold mb-6">All Projects</h2>
                   <div className="space-y-6">
-                    {filteredProjects.map((project) => (
+                    {isLoading ? (
+                      Array(5).fill(0).map((_, i) => (
+                        <ProjectCardSkeleton key={i} />
+                      ))
+                    ) : (filteredProjects.map((project) => (
                       <motion.div
                         key={project.id}
                         initial={{ opacity: 0, y: 20 }}
@@ -486,7 +579,7 @@ export default function DashboardComponent() {
   </CardContent>
 </Card>
                       </motion.div>
-                    ))}
+                    )))}
                   </div>
                 </div>
               </div>
@@ -505,7 +598,11 @@ export default function DashboardComponent() {
                     </TabsList>
                     <TabsContent value="assigned">
                       <div className="space-y-2 mt-4">
-                        {assignedProjects.length > 0 ? (
+                        {isLoading ? (
+                          Array(3).fill(0).map((_, i) => (
+                            <SidebarProjectSkeleton key={i} />
+                          ))
+                        ) :assignedProjects.length > 0 ? (
                           assignedProjects.map(project=>(
                             <motion.div
                             key={project.id}
@@ -520,7 +617,7 @@ export default function DashboardComponent() {
                                 <div className="bg-indigo-500/10 p-2 rounded-full">
                                   <Briefcase className="h-5 w-5 text-indigo-400" />
                                 </div>
-                                <span className="text-sm font-medium text-gray-100 truncate">{project.title}</span>
+                                <span className="text-sm font-medium text-gray-100 truncate">{project.title.slice(0,15)}...</span>
                               </div>
                               <div className="flex space-x-2">
                                 <Button
@@ -557,7 +654,7 @@ export default function DashboardComponent() {
                                 <div className="bg-indigo-500/10 p-2 rounded-full">
                                   <Briefcase className="h-5 w-5 text-indigo-400" />
                                 </div>
-                                <span className="text-sm font-medium text-gray-100 truncate">{project.title}</span>
+                                <span className="text-sm font-medium text-gray-100 truncate">{project.title.slice(0,15)}...</span>
                               </div>
                               <div className="flex space-x-2">
                                 <Button
@@ -581,7 +678,7 @@ export default function DashboardComponent() {
                           </motion.div>
                           ))
                         ) : (
-                          <p className="text-gray-400 text-sm">No created projects</p>
+                          <p className="text-gray-400 text-sm text-center">No created projects</p>
                         )}
                       </div>
                     </TabsContent>

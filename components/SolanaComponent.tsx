@@ -27,7 +27,7 @@ const SolanaComponent: React.FC = () => {
   const [solPrice, setSolPrice] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const escrowId = "6mxD8MFakTGewgamvnA9MfC4fNBiZavwfbCCzccgwKYm"; // Escrow public key
-  const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+  const connection = new Connection("https://thrumming-little-card.solana-mainnet.quiknode.pro/43538a133d29fd9eecf9318a37ee158e10d9bb34", "confirmed");
   const { id } = useParams();
   const router = useRouter(); // Initialize router for navigation
   const searchParams = useSearchParams();

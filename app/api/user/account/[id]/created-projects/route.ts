@@ -26,7 +26,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         const createdProjects = await client.project.findMany({
             where: {
                 clientId: parseInt(clientId),
-                assignedId: { not: null } // Ensure the project has an assigned freelancer
             },
             include: {
                 client: {

@@ -17,7 +17,7 @@ const AssignFreelancer: React.FC = () => {
   const [freelancer, setFreelancer] = useState<freelancerProps>(); // Adjust type as per your freelancer model
   const [error, setError] = useState<string | null>(null);
   const handleContact = async () =>{
-    router.push(`/projects/${id}/contact/`)
+    router.push(`/dashboard`)
   }
   useEffect(() => {
     const fetchFreelancerDetails = async () => {
@@ -67,7 +67,7 @@ const AssignFreelancer: React.FC = () => {
             className="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg font-semibold transition duration-300 ease-in-out"
             onClick={(handleContact)} // Adjust routing as needed
           >
-            Contact Freelancer
+            Dashboard
           </button>
         </div>
       )}

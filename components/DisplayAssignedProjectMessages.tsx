@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams} from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -118,7 +118,7 @@ export default function AssignedProjectComponent() {
     scrollToBottom()
   }, [messages])
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback (async () => {
     try {
       const response = await axios.get(`/api/user/account/${id}/assigned-projects`)
       setProjects(response.data)
@@ -127,7 +127,7 @@ export default function AssignedProjectComponent() {
       console.error('Error fetching projects:', error)
       setIsLoading(false)
     }
-  }
+  },[IDBCursor])
 
   const fetchProjectMessages = async (projectId: number) => {
     try {
@@ -161,7 +161,7 @@ export default function AssignedProjectComponent() {
   const initializeWebSocket = () => {
     setIsConnecting(true)
     const PORT = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '8080'
-    const ws = new WebSocket(`ws://localhost:${PORT}`)
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_URL!)
     
     ws.onopen = () => {
       console.log('WebSocket connection established')
