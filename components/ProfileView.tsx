@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 import axios from 'axios'
 import { motion } from 'framer-motion'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
@@ -21,7 +20,7 @@ interface User {
   bio: string | null
   walletAddressSOL: string,
   walletAddressETH: string
-  projectsCreated: Project[] // Added projectsCreated here
+  projectsCreated: Project[]
 }
 
 interface Project {
@@ -56,6 +55,7 @@ export default function ProfileViewComponent() {
       const { data } = await axios.get(`/api/user/account/${id}`)
       setUser(data)
     } catch (err) {
+      console.error(err);
       setError('Failed to load user profile and projects.')
     } finally {
       setIsLoading(false)
@@ -63,12 +63,12 @@ export default function ProfileViewComponent() {
   }
 
   if (isLoading) return (
-    <div className="flex justify-center items-center h-screen bg-[#222629]">
+    <div className="flex justify-center items-center h-screen bg-[#0a0b0d]">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="text-[#86C232] text-2xl font-light"
+        className="text-indigo-400 text-2xl font-light"
       >
         Loading...
       </motion.div>
@@ -76,7 +76,7 @@ export default function ProfileViewComponent() {
   )
 
   if (error) return (
-    <div className="flex justify-center items-center h-screen bg-[#222629]">
+    <div className="flex justify-center items-center h-screen bg-[#0a0b0d]">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -88,11 +88,11 @@ export default function ProfileViewComponent() {
   )
 
   if (!user) return (
-    <div className="flex justify-center items-center h-screen bg-[#222629]">
+    <div className="flex justify-center items-center h-screen bg-[#0a0b0d]">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center text-[#86C232] text-xl"
+        className="text-center text-indigo-400 text-xl"
       >
         User not found
       </motion.div>
@@ -100,32 +100,32 @@ export default function ProfileViewComponent() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#222629] via-[#2F3439] to-[#474B4F] text-[#C5C6C7] p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0b0d] via-[#1a1b1e] to-[#2a2b2e] text-gray-100 p-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-4xl mx-auto"
       >
-        <Card className="bg-[#2F3439] border-[#86C232] border-opacity-50 overflow-hidden shadow-lg">
+        <Card className="bg-[#1a1b1e] border-indigo-500/20 overflow-hidden shadow-lg">
           <CardHeader className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#86C232] to-[#61892F] opacity-75" />
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-indigo-800 opacity-75" />
             <div className="relative z-10 flex items-center space-x-4">
-              <Avatar className="w-24 h-24 border-4 border-[#86C232]">
+              <Avatar className="w-24 h-24 border-4 border-indigo-400">
                 <AvatarImage src="/placeholder.svg?height=96&width=96" alt={user.name} />
-                <AvatarFallback className="bg-[#61892F] text-[#C5C6C7]">{user.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback className="bg-indigo-700 text-gray-100">{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-3xl font-bold text-[#C5C6C7]">{user.name}</CardTitle>
-                <p className="text-[#C5C6C7] opacity-80">{user.email}</p>
+                <CardTitle className="text-3xl font-bold text-gray-100">{user.name}</CardTitle>
+                <p className="text-gray-200 opacity-80">{user.email}</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="mt-6">
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2 bg-[#474B4F]">
-                <TabsTrigger value="profile" className="data-[state=active]:bg-[#86C232] data-[state=active]:text-[#222629]">Profile</TabsTrigger>
-                <TabsTrigger value="projects" className="data-[state=active]:bg-[#86C232] data-[state=active]:text-[#222629]">Projects</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-[#2a2b2e]">
+                <TabsTrigger value="profile" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-gray-100">Profile</TabsTrigger>
+                <TabsTrigger value="projects" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-gray-100">Projects</TabsTrigger>
               </TabsList>
               <TabsContent value="profile">
                 <motion.div
@@ -134,30 +134,30 @@ export default function ProfileViewComponent() {
                   className="space-y-4"
                 >
                   <div>
-                    <Label className="text-[#86C232]">Bio</Label>
-                    <p className="text-[#C5C6C7]">{user.bio || 'No bio available'}</p>
+                    <Label className="text-indigo-400">Bio</Label>
+                    <p className="text-gray-300">{user.bio || 'No bio available'}</p>
                   </div>
                   <div>
-                    <Label className="text-[#86C232]">Experience Level</Label>
-                    <p className="text-[#C5C6C7]">{user.experience || 'Not specified'}</p>
+                    <Label className="text-indigo-400">Experience Level</Label>
+                    <p className="text-gray-300">{user.experience || 'Not specified'}</p>
                   </div>
                   <div>
-                    <Label className="text-[#86C232]">Skills</Label>
+                    <Label className="text-indigo-400">Skills</Label>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {user.skills.map((skill, index) => (
-                        <Badge key={index} variant="secondary" className="bg-[#61892F] text-[#C5C6C7]">
+                        <Badge key={index} variant="secondary" className="bg-indigo-500/10 text-indigo-400 border-none">
                           {skill}
                         </Badge>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-[#86C232]">Solana Wallet Address</Label>
-                    <p className="text-[#C5C6C7]">{user.walletAddressSOL || 'Not specified'}</p>
+                    <Label className="text-indigo-400">Solana Wallet Address</Label>
+                    <p className="text-gray-300">{user.walletAddressSOL || 'Not specified'}</p>
                   </div>
                   <div>
-                    <Label className="text-[#86C232]">ETH Wallet Address</Label>
-                    <p className="text-[#C5C6C7]">{user.walletAddressETH || 'Not specified'}</p>
+                    <Label className="text-indigo-400">ETH Wallet Address</Label>
+                    <p className="text-gray-300">{user.walletAddressETH || 'Not specified'}</p>
                   </div>
                 </motion.div>
               </TabsContent>
@@ -171,48 +171,48 @@ export default function ProfileViewComponent() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        <Card className="bg-[#474B4F] border-[#86C232] border-opacity-50">
+                        <Card className="bg-[#2a2b2e] border-indigo-500/20">
                           <CardHeader>
-                            <CardTitle className="text-xl flex items-center text-[#86C232]">
-                              <Briefcase className="mr-2 h-5 w-5 text-[#61892F]" />
+                            <CardTitle className="text-xl flex items-center text-indigo-400">
+                              <Briefcase className="mr-2 h-5 w-5 text-indigo-500" />
                               {project.title}
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-[#C5C6C7] mb-4">{project.description}</p>
+                            <p className="text-gray-300 mb-4">{project.description}</p>
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div className="flex items-center">
-                                <DollarSign className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">Budget: ${project.budget}</span>
+                                <DollarSign className="mr-2 h-5 w-5 text-indigo-500" />
+                                <span className="text-gray-300">Budget: ${project.budget}</span>
                               </div>
                               <div className="flex items-center">
-                                <Calendar className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">Time: {project.timeExpected}</span>
+                                <Calendar className="mr-2 h-5 w-5 text-indigo-500" />
+                                <span className="text-gray-300">Time: {project.timeExpected}</span>
                               </div>
                               <div className="flex items-center">
-                                <User className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">Experience: {project.experienceReq}</span>
+                                <User className="mr-2 h-5 w-5 text-indigo-500" />
+                                <span className="text-gray-300">Experience: {project.experienceReq}</span>
                               </div>
                             </div>
                             <div className="mb-4">
-                              <Label className="text-[#86C232]">Required Skills</Label>
+                              <Label className="text-indigo-400">Required Skills</Label>
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {project.skillsRequired.map((skill, index) => (
-                                  <Badge key={index} variant="secondary" className="bg-[#61892F] text-[#C5C6C7]">
+                                  <Badge key={index} variant="secondary" className="bg-indigo-500/10 text-indigo-400 border-none">
                                     {skill}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
                             <div>
-                              <Label className="text-[#86C232]">Client</Label>
+                              <Label className="text-indigo-400">Client</Label>
                               <div className="flex items-center mt-2">
-                                <User className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">{project.client.name}</span>
+                                <User className="mr-2 h-5 w-5 text-indigo-500" />
+                                <span className="text-gray-300">{project.client.name}</span>
                               </div>
                               <div className="flex items-center">
-                                <Mail className="mr-2 h-5 w-5 text-[#61892F]" />
-                                <span className="text-[#C5C6C7]">{project.client.email}</span>
+                                <Mail className="mr-2 h-5 w-5 text-indigo-500" />
+                                <span className="text-gray-300">{project.client.email}</span>
                               </div>
                             </div>
                           </CardContent>
@@ -223,7 +223,7 @@ export default function ProfileViewComponent() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-[#C5C6C7]"
+                      className="text-gray-300"
                     >
                       No projects found for this user.
                     </motion.div>

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
-import { FaBriefcase, FaClock, FaDollarSign, FaEthereum, FaTools, FaUser, FaEnvelope, FaStar } from 'react-icons/fa';
+import { FaBriefcase, FaClock, FaDollarSign, FaTools, FaUser, FaEnvelope, FaStar } from 'react-icons/fa';
 import { SiSolana } from 'react-icons/si';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,10 +50,6 @@ const PaymentPage = () => {
 
   const handleSolana = () => {
     router.push(`/projects/${id}/payments/solana?applicantId=${applicantId}`);
-  };
-
-  const handleEth = () => {
-    router.push(`/projects/${id}/payments/ethereum`);
   };
 
   const fetchProjectDetails = async () => {
@@ -205,7 +201,7 @@ const PaymentPage = () => {
         </motion.div>
 
         <motion.div 
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-1 gap-6"
           variants={fadeInUp}
           initial="initial"
           animate="animate"
@@ -213,11 +209,6 @@ const PaymentPage = () => {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button onClick={handleSolana} className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-lg flex items-center justify-center shadow-lg">
               <SiSolana className="mr-3" size={28} /> Pay with Solana
-            </Button>
-          </motion.div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button onClick={handleEth} className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-lg flex items-center justify-center shadow-lg">
-              <FaEthereum className="mr-3" size={28} /> Pay with Ethereum
             </Button>
           </motion.div>
         </motion.div>

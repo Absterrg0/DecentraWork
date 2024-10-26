@@ -11,12 +11,11 @@ export async function GET() {
         }, { status: 401 })
     }
     try {
-        const userId = parseInt(session.user.id)
 
         const response = await client.project.findMany({
-            // where:{
-            //     assigned:null
-            // },
+            where:{
+                assigned:null
+            },
             include: {
                 client: {
                     select: {

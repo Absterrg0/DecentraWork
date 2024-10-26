@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect } from "react"
+import React from "react"
 import { Spotlight } from "./ui/spotlight"
 import { Button } from "./ui/button"
 import NavBar from "./Navbar"

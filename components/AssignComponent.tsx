@@ -1,11 +1,12 @@
 
 'use client'
-// app/projects/[id]/assign/page.tsx
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
-
+interface freelancerProps{
+  name:string
+}
 const AssignFreelancer: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -13,7 +14,7 @@ const AssignFreelancer: React.FC = () => {
   const {id} = useParams(); // Assuming the project ID is in the query params
 
   const [loading, setLoading] = useState(true);
-  const [freelancer, setFreelancer] = useState<any>(null); // Adjust type as per your freelancer model
+  const [freelancer, setFreelancer] = useState<freelancerProps>(); // Adjust type as per your freelancer model
   const [error, setError] = useState<string | null>(null);
   const handleContact = async () =>{
     router.push(`/projects/${id}/contact/`)
@@ -26,6 +27,7 @@ const AssignFreelancer: React.FC = () => {
           setFreelancer(response.data);
         }
       } catch (err) {
+        console.error(err);
         setError('Error fetching freelancer details.');
       } finally {
         setLoading(false);

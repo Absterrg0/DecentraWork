@@ -75,9 +75,8 @@ const FeaturePaymentComponent: React.FC = () => {
         const signature = await wallet.sendTransaction(transaction, connection);
         await connection.confirmTransaction(signature, 'processed');
         setTransactionComplete(true);
-        await axios.post('/api/user/account/assign',{applicantId,id})
-        await axios.post('/api/project/feature')
-        router.push(`/projects/${id}/assign/?applicantId=${applicantId}`)
+        await axios.put(`/api/projects/${id}/feature`)
+        router.push('/dashboard')
 
       } catch (error) {
         console.error('Transaction failed', error);

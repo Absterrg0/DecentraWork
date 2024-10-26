@@ -39,7 +39,13 @@ export async function POST(req: NextRequest) {
     }
 
 
-
+    await client.user.create({
+      data:{
+        email:body.email,
+        password:hashedPassword,
+        name:body.name
+      }
+    })
     // Respond with a success message (but no sensitive data like password)
     return NextResponse.json({
       msg: "You have successfully signed up.",

@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import client from '@/db';
 import bcrypt from 'bcrypt';
 import { User } from '@prisma/client'
+import { JWT } from "next-auth";
 
 export const authValues: AuthOptions = {
     providers: [
@@ -52,14 +53,16 @@ export const authValues: AuthOptions = {
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token.id = user.id;
-                token.email = user.email;
-                token.name = user.name;
-                token.experience = (user as any).experience;
-                token.skills = (user as any).skills;
-                token.bio = (user as any).bio;
+                const { id, email, name, experience, skills, bio } = user as JWT; // Type assertion for user as JWT
+                token.id = id;
+                token.email = email;
+                token.name = name;
+                token.experience = experience;
+                token.skills = skills;
+                token.bio = bio;
             }
             return token;
+            
         },
         async session({ session, token }) {
             if (session.user) {

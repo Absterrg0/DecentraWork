@@ -264,7 +264,7 @@ export default function CreateProject() {
             <label className="block text-sm font-medium text-amber-300 mb-1">Required Skills</label>
             <div className="flex flex-wrap gap-2 mb-2">
               <AnimatePresence>
-                {formData.skillsRequired.map((skill, index) => (
+                {formData.skillsRequired.map((skill) => (
                   <motion.span
                     key={skill}
                     initial={{ opacity: 0, scale: 0.8 }}

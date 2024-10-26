@@ -35,6 +35,7 @@ export default function SigninForm() {
         router.push('/dashboard')
       }
     } catch (error) {
+      console.error(error);
       toast.error("An unexpected error occurred. Please try again.") // Show generic error toast
     } finally {
       setIsLoading(false)
@@ -99,13 +100,6 @@ export default function SigninForm() {
                 >
                   <div className="flex justify-between items-center">
                     <Label htmlFor="password" className="text-sm font-medium text-zinc-300">Password</Label>
-                    <Button
-                      variant="link"
-                      className="text-xs text-zinc-400 hover:text-zinc-300"
-                      onClick={() => router.push('/forgot-password')}
-                    >
-                      Forgot password?
-                    </Button>
                   </div>
                   <div className="relative">
                     <Input
@@ -156,20 +150,6 @@ export default function SigninForm() {
             </div>
           </div>
         </div>
-      </motion.div>
-      <motion.div 
-        className="flex-1 hidden md:block"
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Image
-          src="/placeholder.svg?height=1080&width=1920"
-          alt="Decorative background"
-          width={1920}
-          height={1080}
-          className="h-full w-full object-cover"
-        />
       </motion.div>
     </div>
   )

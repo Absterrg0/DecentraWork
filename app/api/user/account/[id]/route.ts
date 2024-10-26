@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import client from '@/db';
-import bcrypt from 'bcrypt';
 import { getServerSession } from "next-auth";
 import authValues from "@/lib/auth";
 
@@ -12,14 +11,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   if (!session || !session.user) {
     return NextResponse.json({ msg: "Unauthorized" });
   }
+  const userId = params.id
 
   try {
-    const userId = parseInt(params.id);
+
     
     // Fetch the user details and their projects from the database using Prisma
     const user = await client.user.findUnique({
       where: {
-        id: userId,
+        id: parseInt(userId),
       },
       select: {
         id: true,
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest) {
   const session = await getServerSession(authValues);
   if (!session || !session.user) {
     return NextResponse.json({ msg: "Unauthorized" }, { status: 401 });

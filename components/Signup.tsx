@@ -31,7 +31,7 @@ export default function SignupForm() {
     setIsLoading(true)
 
     try {
-      const response = await axios.post<ApiResponse>('/api/user/account', { name, email, password });
+      await axios.post<ApiResponse>('/api/user/account', { name, email, password });
 
       // Show success toast on successful signup
       toast.success("You've successfully signed up."); 

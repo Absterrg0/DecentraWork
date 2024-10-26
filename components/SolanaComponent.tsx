@@ -113,9 +113,6 @@ const SolanaComponent: React.FC = () => {
     return null;
   };
 
-  const handleContactFreelancer = () => {
-    // Implement the logic for contacting the freelancer, e.g., open a chat or redirect to a contact page
-  };
 
   if (isLoading) {
     return (

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams} from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { MessageCircle, User, Send, ChevronRight, Loader2,CheckCircle,DollarSign } from 'lucide-react'
-import { Badge } from './ui/badge'
 import { Card,CardContent } from './ui/card'
 import { AlertDialog,AlertDialogDescription,AlertDialogContent,AlertDialogHeader,AlertDialogCancel,AlertDialogFooter,AlertDialogTitle,AlertDialogAction } from './ui/alert-dialog'
+import { Textarea } from './ui/textarea'
 type UserDetails = {
   id: number
   name: string
@@ -90,9 +90,11 @@ export default function AssignedProjectComponent() {
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [showCollectMoneyDialog, setShowCollectMoneyDialog] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const router = useRouter();
+  const [showCollectMoneyDialog, setShowCollectMoneyDialog] = useState(false)
+  const [finalMessage, setFinalMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const { id } = useParams()
 
   useEffect(() => {
@@ -136,8 +138,25 @@ export default function AssignedProjectComponent() {
     }
   }
 
-  const handleCollectMoney = async () => {
-    router.push('/collect-money')
+  const handleCollectMoney = () => {
+    setShowCollectMoneyDialog(true)
+  }
+
+  const handleSubmitCollection = async () => {
+    try {
+      setIsSubmitting(true)
+      await axios.put(`/api/projects/${selectedProject?.id}/complete/freelancer`, {
+        finalMessage
+      })
+      
+      setShowCollectMoneyDialog(false)
+      setShowSuccessDialog(true)
+      setFinalMessage('')
+    } catch (error) {
+      console.error('Error collecting money:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
   const initializeWebSocket = () => {
     setIsConnecting(true)
@@ -255,6 +274,59 @@ export default function AssignedProjectComponent() {
           </ScrollArea>
         </motion.div>
       </div>
+      <AlertDialog open={showCollectMoneyDialog} onOpenChange={setShowCollectMoneyDialog}>
+        <AlertDialogContent className="bg-[#1a1b1e] border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-indigo-400">Collect Project Payment</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Please provide any final words or instructions for the client before collecting your payment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            value={finalMessage}
+            onChange={(e) => setFinalMessage(e.target.value)}
+            placeholder="Thank you for your business! Let me know if you need any clarifications..."
+            className="min-h-[100px] mt-4 bg-[#2a2b2e] text-gray-300 border-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-gray-800 text-gray-300 hover:bg-gray-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSubmitCollection}
+              disabled={isSubmitting}
+              className="bg-indigo-600 text-indigo-100 hover:bg-indigo-700"
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Submit & Collect Payment'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent className="bg-[#1a1b1e] border-gray-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-green-400">Payment Collection Initiated</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Your payment request has been submitted successfully. You should receive your payment within 5-7 business days.
+              <strong>ENSURE THAT YOU HAVE YOUR PUBLIC ADDRESS CONFIGURED</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              className="bg-green-600 text-green-100 hover:bg-green-700"
+              onClick={() => setShowSuccessDialog(false)}
+            >
+              Got it, thanks!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       
       <div className="flex-1 flex flex-col p-6 overflow-hidden">
         {selectedProject ? (

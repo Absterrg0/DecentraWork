@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, DollarSign, Calendar, ChevronDown, User, Briefcase, LogOut, Filter, Sparkles, PlusCircle, AlertCircle, MessageSquare, BarChart, Eye, Clock, Tag, Users } from 'lucide-react';
+import { Search, DollarSign, Briefcase, LogOut, Filter, Sparkles, PlusCircle, AlertCircle, MessageSquare, BarChart, Eye, Clock, Tag, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +56,6 @@ export default function DashboardComponent() {
   const [isProfileComplete, setIsProfileComplete] = useState<boolean | null>(null);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [featuredProjects,setFeaturedProjects]=useState<Project[]>([])
-  const [featuredSkills,setFeaturedSkills]=useState<string[]>([])
 
   useEffect(() => {
     fetchProjects();
@@ -77,10 +76,22 @@ export default function DashboardComponent() {
   const handleViewProposals = (projectId: number) => {
     router.push(`/projects/${projectId}/proposals`);
   };
-
-  const handleViewMessages = (projectId: number) => {
-    router.push(`/projects/${projectId}/messages`);
+  const handleViewMessagesCreated = () => {
+    if (session?.user?.id) {
+      router.push(`/user/${session.user.id}/created-projects/messages`);
+    } else {
+      console.error("User session not found");
+    }
   };
+  
+  const handleViewMessagesAssigned = () => {
+    if (session?.user?.id) {
+      router.push(`/user/${session.user.id}/assigned-projects/messages`);
+    } else {
+      console.error("User session not found");
+    }
+  };
+  
   
   const fetchAssignedProjects = async () => {
     if (status === "authenticated" && session?.user?.id) {
@@ -156,8 +167,6 @@ export default function DashboardComponent() {
       const response = await axios.get('/api/projects/featured');
       const data = response.data;
       setFeaturedProjects(data);
-      const skills = Array.from(new Set(data.flatMap((project: Project) => project.skillsRequired)));
-      setFeaturedSkills(skills as string[]);
     } catch (error) {
       console.error('Error fetching projects:', error);
     }
@@ -518,24 +527,16 @@ export default function DashboardComponent() {
                                   size="icon"
                                   variant="ghost"
                                   className="h-8 w-8"
-                                  onClick={() => handleViewMessages(project.id)}
+                                  onClick={handleViewMessagesAssigned}
                                 >
                                   <MessageSquare className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8"
-                                  onClick={() => handleViewProposals(project.id)}
-                                >
-                                  <BarChart className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
                           </motion.div>
                           ))
                         ) : (
-                          <p className="text-gray-400 text-sm">No assigned projects</p>
+                          <p className="text-gray-400 text-sm text-center">No assigned projects</p>
                         )}
                       </div>
                     </TabsContent>
@@ -563,7 +564,7 @@ export default function DashboardComponent() {
                                   size="icon"
                                   variant="ghost"
                                   className="h-8 w-8"
-                                  onClick={() => handleViewMessages(project.id)}
+                                  onClick={handleViewMessagesCreated}
                                 >
                                   <MessageSquare className="h-4 w-4" />
                                 </Button>

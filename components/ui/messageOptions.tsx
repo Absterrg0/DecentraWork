@@ -35,28 +35,37 @@ export default function MessageOptions() {
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 
-          className="text-gray-300 hover:text-[#86C232] transition-colors duration-300"
+          className="relative p-2 text-gray-400 hover:text-indigo-400 transition-colors duration-300"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-5 w-5" />
+          {/* Optional notification dot */}
+          <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-[#0a0b0d]" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 bg-[#2F3439] border border-[#86C232] rounded-lg shadow-xl p-0">
-        <div className="flex flex-col">
+      <PopoverContent 
+        className="w-56 bg-[#1a1b1e] border border-gray-800 rounded-xl shadow-lg shadow-black/20 p-1"
+        sideOffset={8}
+      >
+        <div className="flex flex-col space-y-1">
           <Button
             variant="ghost"
-            className="flex items-center justify-start px-4 py-2 text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300"
+            className="flex items-center justify-start px-3 py-2 text-gray-400 hover:text-indigo-400 hover:bg-[#2a2b2e] rounded-lg transition-colors duration-300 w-full"
             onClick={handleViewCreatedProjects}
           >
-            <FolderOpen className="mr-2 h-4 w-4" />
-            <span>Created Projects</span>
+            <div className="bg-indigo-500/10 p-1 rounded-lg mr-2">
+              <FolderOpen className="h-4 w-4 text-indigo-400" />
+            </div>
+            <span className="text-sm font-medium">Created Projects</span>
           </Button>
           <Button
             variant="ghost"
-            className="flex items-center justify-start px-4 py-2 text-gray-300 hover:bg-[#474B4F] hover:text-[#86C232] transition-colors duration-300"
+            className="flex items-center justify-start px-3 py-2 text-gray-400 hover:text-indigo-400 hover:bg-[#2a2b2e] rounded-lg transition-colors duration-300 w-full"
             onClick={handleViewAssignedProjects}
           >
-            <Briefcase className="mr-2 h-4 w-4" />
-            <span>Assigned Projects</span>
+            <div className="bg-indigo-500/10 p-1 rounded-lg mr-2">
+              <Briefcase className="h-4 w-4 text-indigo-400" />
+            </div>
+            <span className="text-sm font-medium">Assigned Projects</span>
           </Button>
         </div>
       </PopoverContent>

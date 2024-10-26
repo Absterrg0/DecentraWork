@@ -1,6 +1,5 @@
 import authValues from "@/lib/auth";
 import { getServerSession } from "next-auth";
-import { useParams } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import client from '@/db'
 

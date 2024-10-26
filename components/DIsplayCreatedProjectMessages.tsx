@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import axios from 'axios'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { MessageCircle, User, Send, ChevronRight, Loader2,CheckCircle} from 'lucide-react'
 import { AlertDialog,AlertDialogDescription,AlertDialogContent,AlertDialogHeader,AlertDialogCancel,AlertDialogFooter,AlertDialogTitle,AlertDialogAction } from './ui/alert-dialog'
-import { Card,CardContent,CardDescription } from './ui/card'
+import { Card,CardContent} from './ui/card'
 import { Badge } from './ui/badge'
 import { Textarea } from './ui/textarea'
 type UserDetails = {
@@ -164,7 +164,7 @@ export default function CreatedProjectsMessagesComponent() {
   
       if (response.status === 200) {
         // Update the project state locally to reflect completion
-        setSelectedProject(prev => prev ? { ...prev, isCompleted: true } : null);
+        setSelectedProject(prev => prev ? { ...prev, isCompleted: true} : null);
         setProjects(prev => prev.map(p => p.id === selectedProject?.id ? { ...p, isCompleted: true } : p));
         setClientCompletionModal(true)
   
@@ -439,7 +439,7 @@ export default function CreatedProjectsMessagesComponent() {
         <AlertDialogHeader>
           <AlertDialogTitle className="text-indigo-400">Final words for freelancer</AlertDialogTitle>
           <AlertDialogDescription className="text-gray-400">
-          Please describe the freelancer's work and how satisfied you were with their performance. (Leaving this field empty will indicate that the job was completed to your satisfaction.)
+          Please describe the freelancer&apos;s work and how satisfied you were with their performance. (Leaving this field empty will indicate that the job was completed to your satisfaction.)
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="my-4">

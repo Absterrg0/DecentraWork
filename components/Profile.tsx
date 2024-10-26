@@ -64,6 +64,7 @@ export default function Component() {
       setEditedUser(data)
       setIsOwner(session?.user?.id === data.id.toString())
     } catch (err) {
+      console.error(err)
       setError('Failed to load user profile.')
     } finally {
       setIsLoading(false)
@@ -83,6 +84,7 @@ export default function Component() {
         setUser(editedUser)
         setIsEditing(false)
       } catch (err) {
+        console.error(err);
         setError('Failed to update user profile.')
       }
     }

@@ -16,7 +16,7 @@ export async function PUT(req:NextRequest,{params}:{params:{id:string}}){
   try{
     const id = params.id;
     const body = await req.json();
-    const response = await client.project.update({
+    await client.project.update({
       where:{
         id:parseInt(id)
       },

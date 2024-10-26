@@ -5,13 +5,11 @@ import { getToken } from 'next-auth/jwt';
 const protectedRoutes = ['/dashboard', '/profile', '/projects', '/account'];
 
 export async function middleware(request: NextRequest) {
-  
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
     cookieName: 'next-auth.session-token',
   });
-
 
   if (protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
     if (!token) {
@@ -25,5 +23,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/profile/:path*', '/projects/:path*', '/user/:path*'],
+  matcher: ['/dashboard/:path*', '/profile/:path*', '/projects/:path*', '/user/:path*', '/admin/:path*'],
 };
