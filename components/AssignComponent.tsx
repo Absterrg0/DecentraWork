@@ -2,7 +2,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 interface freelancerProps{
   name:string
@@ -11,7 +11,6 @@ const AssignFreelancer: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const applicantId = searchParams.get('applicantId');
-  const {id} = useParams(); // Assuming the project ID is in the query params
 
   const [loading, setLoading] = useState(true);
   const [freelancer, setFreelancer] = useState<freelancerProps>(); // Adjust type as per your freelancer model

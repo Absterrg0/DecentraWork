@@ -178,7 +178,6 @@ export default function CreatedProjectsMessagesComponent() {
     if (!selectedProject?.assigned) return
     
     setIsConnecting(true)
-    const PORT = process.env.NEXT_PUBLIC_WEBSOCKET_PORT || '8080'
     const ws = new WebSocket(process.env.NEXT_PUBLIC_BACKEND_URL!)
     
     ws.onopen = () => {
