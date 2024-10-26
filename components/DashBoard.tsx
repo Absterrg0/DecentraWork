@@ -313,9 +313,9 @@ export default function DashboardComponent() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative p-1">
                     <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-gray-700 transition-all duration-300 hover:ring-indigo-500">
-                        <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-                        <AvatarFallback>U</AvatarFallback>
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-gray-100 transition-all duration-300 hover:ring-indigo-500">
+                        <AvatarImage src="" alt="User" />
+                        <AvatarFallback className='text-black'>U</AvatarFallback>
                       </Avatar>
                       {isProfileComplete === false && (
                         <span className="absolute top-0 right-0 block h-3 w-3 rounded-full bg-red-500 ring-2 ring-[#0a0b0d]" />
