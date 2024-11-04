@@ -96,7 +96,7 @@ const LandingPage: React.FC = () => {
               variant="default" 
               size="lg" 
               className="bg-[#66FCF1] text-[#1F2833] hover:bg-[#45A29E] transition duration-300 ease-in-out rounded-full shadow-lg transform hover:scale-105"
-              onClick={() => router.push('/api/auth/signin')} // Redirect to sign in
+              onClick={() => router.push('/signup')} // Redirect to sign in
             >
               Get Started
             </Button>

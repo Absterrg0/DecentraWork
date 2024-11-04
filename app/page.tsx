@@ -1,6 +1,6 @@
 import LandingPage from "@/components/LandingPage"
 export default function Home() {
-  return <div>
+  return <main>
     <LandingPage></LandingPage>
-  </div>
+  </main>
 }
