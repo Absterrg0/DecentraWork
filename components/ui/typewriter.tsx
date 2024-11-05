@@ -11,13 +11,13 @@ export function TypewriterEffectSmoothEffect() {
       text: "marketplace",
     },
     {
-      text: "integrated",
-    },
-    {
       text: "with",
     },
     {
-      text: "Solana.",
+      text: "SOL",
+    },
+    {
+      text: "Payments.",
       className: "text-blue-500 dark:text-blue-500",
     },
   ];

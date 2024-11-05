@@ -1,5 +1,4 @@
 'use client'
-import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import FeaturesSectionDemo from "./blocks/features-section-demo-2"
@@ -23,11 +22,7 @@ const staggerChildren = {
 }
 
 export default function LandingPage() {
-  const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   return (
     <div className="bg-black h-screen text-white">
