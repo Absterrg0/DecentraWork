@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button"
 import FeaturesSectionDemo from "./blocks/features-section-demo-2"
 import { MeteorsDemo } from "./ui/meteorEffect"
 import { TypewriterEffectSmoothEffect } from "./ui/typewriter"
-import { OrbitingCirclesEffect } from "./ui/orbit"
 import GridPattern from "./ui/animated-grid-pattern"
 import { cn } from "@/lib/utils"
-
+import {OrbitingCirclesEffect} from "./ui/orbit"
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -113,7 +112,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
           <MeteorsDemo
             title="Step 1: Share Your Project Details"
-            description="Kickstart your project journey by providing a detailed overview of your requirements, goals, and budget. Clearly outlining your needs helps connect you with the best-suited freelancers, making your vision a reality."
+            description="Kickstart your project journey by providing a detailed overview of your requirements, goals, and budget. Clearly outlining your needs helps connect you with the best-suited freelancers, making your vision a reality.."
           />
           <MeteorsDemo
             title="Step 2: Receive Tailored Proposals"
