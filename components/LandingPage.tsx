@@ -1,130 +1,153 @@
-'use client';
+'use client'
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import FeaturesSectionDemo from "./blocks/features-section-demo-2"
+import { MeteorsDemo } from "./ui/meteorEffect"
+import { TypewriterEffectSmoothEffect } from "./ui/typewriter"
+import { OrbitingCirclesEffect } from "./ui/orbit"
+import GridPattern from "./ui/animated-grid-pattern"
+import { cn } from "@/lib/utils"
 
-import React, { useEffect } from "react";
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Spotlight } from "./ui/spotlight";
-import { Button } from "./ui/button";
-import NavBar from "./Navbar";
-import { motion, Variants } from "framer-motion";
-import { Shield, Globe, DollarSign } from "lucide-react";
-import DynamicBackground from "./ui/background";
-
-const fadeIn: Variants = {
+const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-};
-
-const staggerChildren: Variants = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
-interface FeatureCardProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
+  transition: { duration: 0.6, ease: "easeOut" }
 }
 
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon: Icon, title, description }) => (
-  <motion.div 
-    className="p-6 rounded-xl bg-[#1F2833]/80 backdrop-blur-sm shadow-lg hover:shadow-[#66FCF1]/20 transition-all duration-300"
-    whileHover={{ scale: 1.05 }}
-    variants={fadeIn}
-  >
-    <Icon className="w-12 h-12 text-[#66FCF1] mb-4" />
-    <h3 className="text-xl font-semibold text-[#66FCF1]">{title}</h3>
-    <p className="text-sm text-[#C5C6C7] mt-2">{description}</p>
-  </motion.div>
-);
+const staggerChildren = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+}
 
-const LandingPage: React.FC = () => {
-  const {status } = useSession();
-  const router = useRouter();
+export default function LandingPage() {
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Redirect to dashboard if the user is authenticated
-    if (status === 'authenticated') {
-      router.push('/dashboard');
-    }
-  }, [status, router]);
-
-  // Render loading state while checking session status
-  if (status === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen bg-[0x0B0C10] "></div>; // You can replace this with a spinner or loading animation
-  }
+    setMounted(true)
+  }, [])
 
   return (
-    <div className="min-h-screen w-full flex md:items-center md:justify-center antialiased relative overflow-hidden">
-      <DynamicBackground /> {/* Dynamic background with color */}
-      <Spotlight />
-      <NavBar />
-      <div className="p-4 max-w-7xl mx-auto relative z-10 w-full pt-20 md:pt-0">
-        <motion.div
-          variants={staggerChildren}
-          initial="initial"
-          animate="animate"
-          className="space-y-10"
-        >
-          <motion.h1
-            className="text-5xl md:text-7xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-br from-[#66FCF1] to-[#C5C6C7]"
-            variants={fadeIn}
-          >
-            Welcome to DecentraWork
-          </motion.h1>
-          <motion.h2
-            className="text-3xl md:text-4xl font-semibold text-center text-[#66FCF1]"
-            variants={fadeIn}
-          >
-            Empowering Decentralized Freelancing
-          </motion.h2>
-          <motion.p
-            className="font-normal text-lg text-[#C5C6C7] max-w-lg text-center mx-auto"
-            variants={fadeIn}
-          >
-            Discover a new way to connect and collaborate with freelancers around the globe. 
-            With blockchain technology, experience secure transactions and build trust effortlessly.
-          </motion.p>
+    <div className="bg-black h-screen text-white">
+      {/* Landing Section */}
+      <div className="relative h-5/6">
+        <GridPattern
+          numSquares={30}
+          maxOpacity={0.1}
+          duration={3}
+          repeatDelay={1}
+          className={cn(
+            "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+            "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12",
+          )}
+        />
+        
+        <div className="relative overflow-hidden h-full">
           <motion.div 
-            className="flex justify-center"
-            variants={fadeIn}
+            className="flex items-center justify-center h-full relative z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
           >
-            <Button 
-              variant="default" 
-              size="lg" 
-              className="bg-[#66FCF1] text-[#1F2833] hover:bg-[#45A29E] transition duration-300 ease-in-out rounded-full shadow-lg transform hover:scale-105"
-              onClick={() => router.push('/signup')} // Redirect to sign in
-            >
-              Get Started
+            <div className="text-center">
+              <motion.h1 
+                className="text-6xl font-bold text-white mb-4"
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                Decentra<span className="text-indigo-500">Work</span>
+              </motion.h1>
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                transition={{ delay: 0.5 }}
+              >
+                <div>
+                  <TypewriterEffectSmoothEffect></TypewriterEffectSmoothEffect>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+
+
+      {/* Orbiting Circles Effect Below Buttons */}
+      <OrbitingCirclesEffect />
+
+      {/* About Section */}
+      <motion.div
+        className="bg-black py-20 text-center border-t border-indigo-500/20"
+        {...fadeInUp}
+      >
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-4xl font-bold mb-6 text-indigo-400">What is DecentraWork?</h2>
+          <p className="text-xl text-gray-300 leading-relaxed">
+            DecentraWork is a revolutionary decentralized platform connecting freelancers and clients in a secure, transparent way. We leverage blockchain technology to redefine the future of work, ensuring trust, efficiency, and fairness in every interaction.
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Features Section */}
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={staggerChildren}
+        className="bg-black border-t border-indigo-500/20"
+      >
+        <FeaturesSectionDemo />
+      </motion.div>
+
+      <motion.div
+        className="bg-black py-20 border-t border-indigo-500/20"
+        {...fadeInUp}
+      >
+        <div className="text-4xl text-center font-semibold mb-12 mr-8">
+          How It Works
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
+          <MeteorsDemo
+            title="Step 1: Share Your Project Details"
+            description="Kickstart your project journey by providing a detailed overview of your requirements, goals, and budget. Clearly outlining your needs helps connect you with the best-suited freelancers, making your vision a reality."
+          />
+          <MeteorsDemo
+            title="Step 2: Receive Tailored Proposals"
+            description="Top-tier freelancers review your project details and submit customized proposals that match your requirements. Browse through proposals, check profiles, and select the perfect candidate to bring your project to life."
+          />
+          <MeteorsDemo
+            title="Step 3: Collaborate with Security and Ease"
+            description="Work seamlessly with your chosen freelancer using our secure and private real-time chat. Our platform prioritizes safe collaboration with end-to-end support, ensuring smooth project completion and transparent communication every step of the way."
+          />
+        </div>
+      </motion.div>
+            {/* Call to Action Section */}
+            <motion.div
+        className="bg-black py-16 text-center border-t border-indigo-500/20"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+      >
+        <div className="max-w-4xl mx-auto px-4">
+          <h2 className="text-4xl font-bold text-indigo-400 mb-6">Join the DecentraWork Community</h2>
+          <p className="text-xl text-gray-300 mb-10 leading-relaxed">
+            Be part of the freelancing revolution. Sign up today to connect with talented professionals or find your next groundbreaking project.
+          </p>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-full text-xl transition duration-300 ease-in-out">
+              Get Started Now
             </Button>
           </motion.div>
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            variants={staggerChildren}
-          >
-            <FeatureCard 
-              icon={Shield}
-              title="Secure Transactions"
-              description="Experience peace of mind with smart contracts, ensuring safe and transparent transactions."
-            />
-            <FeatureCard 
-              icon={Globe}
-              title="Global Talent Pool"
-              description="Connect with skilled professionals from around the world, expanding your network globally."
-            />
-            <FeatureCard 
-              icon={DollarSign}
-              title="Minimal Fees"
-              description="Maximize your earnings with our low-fee structure, putting more money in your pocket."
-            />
-          </motion.div>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
+        </div>
+      </motion.div>
 
-export default LandingPage;
+    </div>
+  )
+}
