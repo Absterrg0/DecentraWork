@@ -7,7 +7,7 @@ import { TypewriterEffectSmoothEffect } from "./ui/typewriter"
 import GridPattern from "./ui/animated-grid-pattern"
 import { cn } from "@/lib/utils"
 import { OrbitingCirclesEffect } from "./ui/orbit"
-
+import { useRouter } from "next/navigation"
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
@@ -23,6 +23,11 @@ const staggerChildren = {
 }
 
 export default function LandingPage() {
+  const router = useRouter();
+  const handleGetStarted = () =>{
+    router.push('/signup')
+    }
+  
   return (
     <div className="bg-black min-h-screen text-white">
       {/* Landing Section */}
@@ -136,7 +141,7 @@ export default function LandingPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-full text-lg md:text-xl transition duration-300 ease-in-out">
+            <Button onClick={handleGetStarted} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-full text-lg md:text-xl transition duration-300 ease-in-out">
               Get Started Now
             </Button>
           </motion.div>
