@@ -38,6 +38,7 @@ const FeaturePaymentComponent: React.FC = () => {
       try {
         setIsLoading(true);
         const projectResponse = await axios.get(`/api/projects/${id}/info`);
+      
         setProjectDetails(projectResponse.data.project);
       } catch (error) {
         console.error('Error fetching data:', error);

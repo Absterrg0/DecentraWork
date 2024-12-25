@@ -61,6 +61,7 @@ const PaymentPage = () => {
       }
 
       const response = await axios.get(`/api/projects/${id}/info`);
+
       setProjectDetails(response.data.project);
     } catch (error) {
       console.error('Error fetching project details:', error);

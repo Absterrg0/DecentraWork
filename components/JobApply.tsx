@@ -62,6 +62,7 @@ export default function ApplyJobComponent() {
   const checkApplicationStatus = async () => {
     try {
       const { data } = await axios.get(`/api/projects/${id}/check`)
+    
       setHasApplied(data.applied)
     } catch (err) {
       console.error('Failed to check application status:', err)

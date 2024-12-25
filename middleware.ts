@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
-    cookieName: '__Secure-next-auth.session-token',
+    cookieName: 'next-auth.session-token',
   });
 
   if (protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route))) {
