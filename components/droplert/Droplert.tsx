@@ -4,12 +4,13 @@ import { MyAlert } from './MyAlert';
 import { useEffect, useState, useRef } from 'react';
 import { MyAlertDialog } from './MyAlertDialog';
 import { MyToast } from './MyToast';
+
 const Droplert: React.FC = () => {
   const [alertQueue, setAlertQueue] = useState<
     {
       title: string;
       description: string;
-      selectedType:string;
+      selectedType: string;
       backgroundColor: string;
       textColor: string;
       borderColor: string;
@@ -19,40 +20,48 @@ const Droplert: React.FC = () => {
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    // Initialize the EventSource
-    eventSourceRef.current = new EventSource('/api/droplert/notify');
+    const initEventSource = () => {
+      const eventSource = new EventSource('/api/droplert/notify');
+      eventSourceRef.current = eventSource;
 
-    // Handle incoming messages
-    eventSourceRef.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setAlertQueue((prevQueue) => [
-          ...prevQueue,
-          {
-            title: data.title,
-            description: data.description,
-            selectedType:data.selectedType,
-            backgroundColor: data.backgroundColor,
-            textColor: data.textColor,
-            borderColor: data.borderColor,
-          },
-        ]);
-      } catch (error) {
-        console.error('Error parsing SSE data:', error);
-      }
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data) {
+            setAlertQueue((prevQueue) => [
+              ...prevQueue,
+              {
+                title: data.title,
+                description: data.description,
+                selectedType: data.selectedType,
+                backgroundColor: data.backgroundColor,
+                textColor: data.textColor,
+                borderColor: data.borderColor,
+              },
+            ]);
+          }
+        } catch (error) {
+          console.error('Error parsing SSE data:', error);
+        }
+      };
+
+      eventSource.onerror = (error) => {
+        console.error('SSE error:', error);
+        eventSource.close();
+
+        // Attempt reconnection after 5 seconds
+        setTimeout(() => {
+          if (eventSourceRef.current?.readyState === EventSource.CLOSED) {
+            initEventSource();
+          }
+        }, 5000);
+      };
     };
 
-    // Handle errors (e.g., network issues) and optionally attempt reconnection
-    eventSourceRef.current.onerror = (error) => {
-      console.error('SSE error:', error);
-      eventSourceRef.current?.close();
-      setTimeout(() => {
-        eventSourceRef.current = new EventSource('/api/droplert/notify');
-      }, 5000); // Attempt reconnection after 5 seconds
-    };
+    initEventSource();
 
     return () => {
-      eventSourceRef.current?.close(); // Clean up on component unmount
+      eventSourceRef.current?.close();
     };
   }, []);
 
@@ -68,43 +77,41 @@ const Droplert: React.FC = () => {
     setCurrentAlert(null);
   };
 
-
   return (
     <div>
-      {currentAlert?.selectedType==='ALERT' && (
-                <MyAlert
-                  title={currentAlert.title}
-                  description={currentAlert.description}
-                  backgroundColor={currentAlert.backgroundColor}
-                  textColor={currentAlert.textColor}
-                  borderColor={currentAlert.borderColor}
-                  onClose={handleCloseAlert}
-                />
+      {currentAlert?.selectedType === 'ALERT' && (
+        <MyAlert
+          title={currentAlert.title}
+          description={currentAlert.description}
+          backgroundColor={currentAlert.backgroundColor}
+          textColor={currentAlert.textColor}
+          borderColor={currentAlert.borderColor}
+          onClose={handleCloseAlert}
+        />
       )}
-      {currentAlert?.selectedType==='ALERT_DIALOG' && (
-                <MyAlertDialog
-                  isOpen={true}
-                  title={currentAlert.title}
-                  description={currentAlert.description}
-                  backgroundColor={currentAlert.backgroundColor}
-                  textColor={currentAlert.textColor}
-                  borderColor={currentAlert.borderColor}
-                  onClose={handleCloseAlert}
-                />
+      {currentAlert?.selectedType === 'ALERT_DIALOG' && (
+        <MyAlertDialog
+          isOpen={true}
+          title={currentAlert.title}
+          description={currentAlert.description}
+          backgroundColor={currentAlert.backgroundColor}
+          textColor={currentAlert.textColor}
+          borderColor={currentAlert.borderColor}
+          onClose={handleCloseAlert}
+        />
       )}
-      {currentAlert?.selectedType==='TOAST' && (
-                <MyToast
-                  isOpen={true}
-                  preview={false}
-                  title={currentAlert.title}
-                  description={currentAlert.description}
-                  backgroundColor={currentAlert.backgroundColor}
-                  textColor={currentAlert.textColor}
-                  borderColor={currentAlert.borderColor}
-                  onClose={handleCloseAlert}
-                />
+      {currentAlert?.selectedType === 'TOAST' && (
+        <MyToast
+          isOpen={true}
+          preview={false}
+          title={currentAlert.title}
+          description={currentAlert.description}
+          backgroundColor={currentAlert.backgroundColor}
+          textColor={currentAlert.textColor}
+          borderColor={currentAlert.borderColor}
+          onClose={handleCloseAlert}
+        />
       )}
-      
     </div>
   );
 };
