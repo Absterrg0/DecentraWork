@@ -71,7 +71,7 @@ const Droplert: React.FC = () => {
 
   return (
     <div>
-      {currentAlert?.selectedType==='alert' && (
+      {currentAlert?.selectedType==='ALERT' && (
                 <MyAlert
                   title={currentAlert.title}
                   description={currentAlert.description}
@@ -81,7 +81,7 @@ const Droplert: React.FC = () => {
                   onClose={handleCloseAlert}
                 />
       )}
-      {currentAlert?.selectedType==='alert-dialog' && (
+      {currentAlert?.selectedType==='ALERT_DIALOG' && (
                 <MyAlertDialog
                   isOpen={true}
                   title={currentAlert.title}
@@ -92,7 +92,7 @@ const Droplert: React.FC = () => {
                   onClose={handleCloseAlert}
                 />
       )}
-      {currentAlert?.selectedType==='toast' && (
+      {currentAlert?.selectedType==='TOAST' && (
                 <MyToast
                   isOpen={true}
                   preview={false}
