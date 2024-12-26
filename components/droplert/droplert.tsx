@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { MyAlert } from './MyAlert';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { MyAlertDialog } from './MyAlertDialog';
 import { MyToast } from './MyToast';
 
@@ -17,70 +17,48 @@ const Droplert: React.FC = () => {
       borderColor: string;
     }[]
   >([]);
-  const eventSourceRef = useRef<EventSource | null>(null);
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('/api/droplert/notify'); // Your long polling endpoint
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        setAlertQueue((prevQueue) => [
+          ...prevQueue,
+          ...data.map((notif: any) => ({
+            id: notif.id || crypto.randomUUID(), // Generate a unique ID if not present
+            title: notif.title,
+            description: notif.description,
+            selectedType: notif.selectedType,
+            backgroundColor: notif.backgroundColor,
+            textColor: notif.textColor,
+            borderColor: notif.borderColor,
+          })),
+        ]);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      // Immediately call fetchNotifications again to continue long polling
+      fetchNotifications();
+    }
+  };
 
   useEffect(() => {
-    const initEventSource = () => {
-      console.log('Initializing EventSource...');
-      const eventSource = new EventSource('/api/droplert/notify');
-      eventSourceRef.current = eventSource;
-
-      eventSource.onmessage = (event) => {
-        console.log('Received message from SSE:', event.data);
-        try {
-          const data = JSON.parse(event.data);
-          if (data) {
-            console.log('Parsed notification data:', data);
-            // Add a unique ID for each notification
-            setAlertQueue((prevQueue) => [
-              ...prevQueue,
-              {
-                id: data.id || crypto.randomUUID(), // Use provided ID or generate one
-                title: data.title,
-                description: data.description,
-                selectedType: data.selectedType,
-                backgroundColor: data.backgroundColor,
-                textColor: data.textColor,
-                borderColor: data.borderColor,
-              },
-            ]);
-            console.log('Updated alert queue:', [...alertQueue, data]);
-          }
-        } catch (error) {
-          console.error('Error parsing SSE data:', error);
-        }
-      };
-
-      eventSource.onerror = (error) => {
-        console.error('SSE error:', error);
-        eventSource.close();
-        
-        // Attempt reconnection after 5 seconds
-        console.log('Attempting to reconnect in 5 seconds...');
-        setTimeout(() => {
-          if (eventSourceRef.current?.readyState === EventSource.CLOSED) {
-            console.log('Reconnecting to EventSource...');
-            initEventSource();
-          }
-        }, 5000);
-      };
-    };
-
-    initEventSource();
+    fetchNotifications(); // Start long polling on component mount
 
     return () => {
-      console.log('Cleaning up EventSource...');
-      eventSourceRef.current?.close();
+      // Cleanup logic can be added here if needed
     };
   }, []);
 
   const handleCloseAlert = (id: string) => {
     console.log(`Closing alert with ID: ${id}`);
-    setAlertQueue((prevQueue) => {
-      const newQueue = prevQueue.filter(alert => alert.id !== id);
-      console.log('Updated alert queue after closing:', newQueue);
-      return newQueue;
-    });
+    setAlertQueue((prevQueue) => prevQueue.filter(alert => alert.id !== id));
   };
 
   return (
