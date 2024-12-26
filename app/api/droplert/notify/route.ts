@@ -1,4 +1,3 @@
-// app/api/droplert/notify/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 type Notification = {
@@ -15,9 +14,8 @@ type Notification = {
 class NotificationManager {
   private static instance: NotificationManager;
   private notificationsQueue: Notification[] = [];
-  private connections: 
-  Set<ReadableStreamController<Uint8Array>> = new Set();
-  
+  private connections: Set<ReadableStreamDefaultController<Uint8Array>> = new Set();
+
   private constructor() {}
 
   static getInstance(): NotificationManager {
@@ -34,27 +32,27 @@ class NotificationManager {
       timestamp: Date.now(),
     };
     this.notificationsQueue.push(enrichedNotification);
-    this.broadcastNotifications();
+    setImmediate(() => this.broadcastNotifications());
   }
-  addConnection(controller: ReadableStreamController<Uint8Array>) {
+
+  addConnection(controller: ReadableStreamDefaultController<Uint8Array>) {
     this.connections.add(controller);
   }
-  removeConnection(controller: ReadableStreamController<Uint8Array>) {
-    this.connections.delete(controller);
-  }
+
+  // Removed removeConnection method to keep connections alive
 
   private broadcastNotifications() {
     while (this.notificationsQueue.length > 0) {
       const notification = this.notificationsQueue.shift();
       if (notification) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(`data: ${JSON.stringify(notification)}\n\n`);
         this.connections.forEach((controller) => {
           try {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(`data: ${JSON.stringify(notification)}\n\n`);
             controller.enqueue(data);
           } catch (error) {
             console.error('Error sending notification:', error);
-            this.removeConnection(controller);
+            // Handle errors without removing connection
           }
         });
       }
@@ -67,25 +65,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { title, description, backgroundColor, selectedType, textColor, borderColor } = body;
 
-    const requiredFields = {
-      title,
-      description,
-      backgroundColor,
-      selectedType,
-      textColor,
-      borderColor,
-    };
-
+    const requiredFields = { title, description, backgroundColor, selectedType, textColor, borderColor };
     const missingFields = Object.entries(requiredFields)
       .filter(([value]) => !value)
       .map(([key]) => key);
 
     if (missingFields.length > 0) {
       return NextResponse.json(
-        {
-          error: "Validation failed",
-          details: `Missing required fields: ${missingFields.join(", ")}`,
-        },
+        { error: "Validation failed", details: `Missing required fields: ${missingFields.join(", ")}` },
         { status: 400 }
       );
     }
@@ -93,10 +80,7 @@ export async function POST(req: NextRequest) {
     const validTypes = ["ALERT", "ALERT_DIALOG", "TOAST"];
     if (!validTypes.includes(selectedType)) {
       return NextResponse.json(
-        {
-          error: "Invalid selectedType",
-          details: `selectedType must be one of: ${validTypes.join(", ")}`,
-        },
+        { error: "Invalid selectedType", details: `selectedType must be one of: ${validTypes.join(", ")}` },
         { status: 400 }
       );
     }
@@ -117,7 +101,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error processing notification:", error);
     return NextResponse.json(
-      { error: "Internal server error", details: (error as Error).message },
+      { error: "Internal server error", details: error },
       { status: 500 }
     );
   }
@@ -126,37 +110,21 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   try {
     const notificationManager = NotificationManager.getInstance();
-    const encoder = new TextEncoder();
     
-    const stream = new ReadableStream({
+    const stream = new ReadableStream<Uint8Array>({
       start(controller) {
         notificationManager.addConnection(controller);
 
         // Send initial heartbeat
-        controller.enqueue(encoder.encode(`: heartbeat\n\n`));
+        controller.enqueue(new TextEncoder().encode(`: heartbeat\n\n`));
 
-        // Setup heartbeat interval
-        const heartbeatInterval = setInterval(() => {
-          try {
-            controller.enqueue(encoder.encode(`: heartbeat\n\n`));
-          } catch (error) {
-            console.error('Heartbeat error:', error);
-            clearInterval(heartbeatInterval);
-            notificationManager.removeConnection(controller);
-          }
-        }, 10000);
 
-        // Handle cleanup
-        const originalClose = controller.close;
-        controller.close = () => {
-          clearInterval(heartbeatInterval);
-          notificationManager.removeConnection(controller);
-          originalClose.call(controller);
-        };
+        // Keep the connection alive indefinitely
+        // No cleanup or close logic is needed here
+        // Just ensure to clear interval if needed in future implementations
       },
       cancel() {
-        //@ts-expect-error IDK
-        notificationManager.removeConnection(this);
+        // No action needed here since we want to keep connections alive
       },
     });
 
@@ -173,6 +141,7 @@ export async function GET() {
     console.error("Error setting up SSE stream:", error);
     return new Response(
       JSON.stringify({ error: "Failed to setup event stream" }),
+
       { status: 500 }
     );
   }

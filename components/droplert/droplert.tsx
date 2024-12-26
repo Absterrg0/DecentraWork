@@ -8,6 +8,7 @@ import { MyToast } from './MyToast';
 const Droplert: React.FC = () => {
   const [alertQueue, setAlertQueue] = useState<
     {
+      id: string; // Added unique identifier for each alert
       title: string;
       description: string;
       selectedType: string;
@@ -16,7 +17,6 @@ const Droplert: React.FC = () => {
       borderColor: string;
     }[]
   >([]);
-  const [currentAlert, setCurrentAlert] = useState<typeof alertQueue[0] | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
@@ -28,9 +28,11 @@ const Droplert: React.FC = () => {
         try {
           const data = JSON.parse(event.data);
           if (data) {
+            // Add a unique ID for each notification
             setAlertQueue((prevQueue) => [
               ...prevQueue,
               {
+                id: data.id || crypto.randomUUID(), // Use provided ID or generate one
                 title: data.title,
                 description: data.description,
                 selectedType: data.selectedType,
@@ -65,53 +67,49 @@ const Droplert: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (!currentAlert && alertQueue.length > 0) {
-      // Display the next alert in the queue
-      setCurrentAlert(alertQueue[0]);
-      setAlertQueue((prevQueue) => prevQueue.slice(1));
-    }
-  }, [currentAlert, alertQueue]);
-
-  const handleCloseAlert = () => {
-    setCurrentAlert(null);
+  const handleCloseAlert = (id: string) => {
+    setAlertQueue((prevQueue) => prevQueue.filter(alert => alert.id !== id));
   };
 
   return (
     <div>
-      {currentAlert?.selectedType === 'ALERT' && (
-        <MyAlert
-          title={currentAlert.title}
-          description={currentAlert.description}
-          backgroundColor={currentAlert.backgroundColor}
-          textColor={currentAlert.textColor}
-          borderColor={currentAlert.borderColor}
-          onClose={handleCloseAlert}
-        />
-      )}
-      {currentAlert?.selectedType === 'ALERT_DIALOG' && (
-        <MyAlertDialog
-          isOpen={true}
-          title={currentAlert.title}
-          description={currentAlert.description}
-          backgroundColor={currentAlert.backgroundColor}
-          textColor={currentAlert.textColor}
-          borderColor={currentAlert.borderColor}
-          onClose={handleCloseAlert}
-        />
-      )}
-      {currentAlert?.selectedType === 'TOAST' && (
-        <MyToast
-          isOpen={true}
-          preview={false}
-          title={currentAlert.title}
-          description={currentAlert.description}
-          backgroundColor={currentAlert.backgroundColor}
-          textColor={currentAlert.textColor}
-          borderColor={currentAlert.borderColor}
-          onClose={handleCloseAlert}
-        />
-      )}
+      {alertQueue.map((alert) => (
+        <div key={alert.id}>
+          {alert.selectedType === 'ALERT' && (
+            <MyAlert
+              title={alert.title}
+              description={alert.description}
+              backgroundColor={alert.backgroundColor}
+              textColor={alert.textColor}
+              borderColor={alert.borderColor}
+              onClose={() => handleCloseAlert(alert.id)}
+            />
+          )}
+          {alert.selectedType === 'ALERT_DIALOG' && (
+            <MyAlertDialog
+              isOpen={true}
+              title={alert.title}
+              description={alert.description}
+              backgroundColor={alert.backgroundColor}
+              textColor={alert.textColor}
+              borderColor={alert.borderColor}
+              onClose={() => handleCloseAlert(alert.id)}
+            />
+          )}
+          {alert.selectedType === 'TOAST' && (
+            <MyToast
+              isOpen={true}
+              preview={false}
+              title={alert.title}
+              description={alert.description}
+              backgroundColor={alert.backgroundColor}
+              textColor={alert.textColor}
+              borderColor={alert.borderColor}
+              onClose={() => handleCloseAlert(alert.id)}
+            />
+          )}
+        </div>
+      ))}
     </div>
   );
 };
