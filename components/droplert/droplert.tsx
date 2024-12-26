@@ -5,6 +5,16 @@ import { useEffect, useState } from 'react';
 import { MyAlertDialog } from './MyAlertDialog';
 import { MyToast } from './MyToast';
 
+type Notification = {
+  id:string
+  title: string;
+  description: string;
+  selectedType: string;
+  style?: string; // Optional field
+  backgroundColor: string;
+  textColor: string;
+  borderColor: string;
+};
 const Droplert: React.FC = () => {
   const [alertQueue, setAlertQueue] = useState<
     {
@@ -29,7 +39,7 @@ const Droplert: React.FC = () => {
       if (data.length > 0) {
         setAlertQueue((prevQueue) => [
           ...prevQueue,
-          ...data.map((notif: any) => ({
+          ...data.map((notif: Notification) => ({
             id: notif.id || crypto.randomUUID(), // Generate a unique ID if not present
             title: notif.title,
             description: notif.description,

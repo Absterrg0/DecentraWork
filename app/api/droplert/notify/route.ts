@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   return new Promise<NextResponse>((resolve) => {
     const timeout = setTimeout(() => {
       // Respond with an empty array if no notifications after MAX_WAIT_TIME
