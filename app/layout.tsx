@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "@/providers";
 import { Analytics } from "@vercel/analytics/react"
-import Droplert from "@/components/droplert/Droplert";
+import Droplert from "@/components/droplert/droplert";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
