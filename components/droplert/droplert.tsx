@@ -1,115 +1,129 @@
 'use client';
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MyAlert } from './MyAlert';
-import { useEffect, useState } from 'react';
 import { MyAlertDialog } from './MyAlertDialog';
 import { MyToast } from './MyToast';
 
 type Notification = {
-  id:string
   title: string;
-  description: string;
-  selectedType: string;
-  style?: string; // Optional field
+  message: string;
+  type: string;
+  style?: string;
   backgroundColor: string;
   textColor: string;
   borderColor: string;
 };
-const Droplert: React.FC = () => {
-  const [alertQueue, setAlertQueue] = useState<
-    {
-      id: string; // Unique identifier for each alert
-      title: string;
-      description: string;
-      selectedType: string;
-      backgroundColor: string;
-      textColor: string;
-      borderColor: string;
-    }[]
-  >([]);
 
-  const fetchNotifications = async () => {
-    try {
-      const response = await fetch('/api/droplert/notify'); // Your long polling endpoint
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      
-      if (data.length > 0) {
-        setAlertQueue((prevQueue) => [
-          ...prevQueue,
-          ...data.map((notif: Notification) => ({
-            id: notif.id || crypto.randomUUID(), // Generate a unique ID if not present
-            title: notif.title,
-            description: notif.description,
-            selectedType: notif.selectedType,
-            backgroundColor: notif.backgroundColor,
-            textColor: notif.textColor,
-            borderColor: notif.borderColor,
-          })),
-        ]);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      // Immediately call fetchNotifications again to continue long polling
-      fetchNotifications();
-    }
-  };
+const WEBSOCKET_URL = process.env.NEXT_PUBLIC_WS_SERVER_URL || '';
+const DROPLERT_ID = process.env.NEXT_PUBLIC_DROPLERT_ID;
+
+
+const Droplert: React.FC = () => {
+  const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
-    fetchNotifications(); // Start long polling on component mount
+    if (!DROPLERT_ID) {
+      console.error("Missing Droplert ID");
+      return;
+    }
+
+    let socket: WebSocket | null = null;
+    let reconnectTimeout: NodeJS.Timeout;
+
+    const connectWebSocket = () => {
+      socket = new WebSocket(WEBSOCKET_URL);
+
+      socket.onopen = () => {
+        console.log('Connected');
+        socket?.send(
+          JSON.stringify({
+            action: 'subscribe',
+            droplertId: DROPLERT_ID,
+            websiteUrl: window.location.origin,
+          })
+        );
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log('Received:', data);
+
+          if (data.type === 'notification') {
+            setCurrentNotification({
+              title: data.data.title,
+              message: data.data.message,
+              type: data.data.type,
+              style: data.data.style,
+              backgroundColor: data.data.backgroundColor,
+              textColor: data.data.textColor,
+              borderColor: data.data.borderColor,
+            });
+          }
+        } catch (error) {
+          console.error('Parse error:', error);
+        }
+      };
+
+      socket.onclose = () => {
+        console.warn('Disconnected. Reconnecting in 5s...');
+        reconnectTimeout = setTimeout(connectWebSocket, 5000);
+      };
+
+      socket.onerror = (error) => {
+        console.error('Socket error:', error);
+      };
+    };
+
+    connectWebSocket();
 
     return () => {
-      // Cleanup logic can be added here if needed
+      socket?.close();
+      clearTimeout(reconnectTimeout);
     };
   }, []);
 
-  const handleCloseAlert = (id: string) => {
-    console.log(`Closing alert with ID: ${id}`);
-    setAlertQueue((prevQueue) => prevQueue.filter(alert => alert.id !== id));
+  const handleClose = () => {
+    setCurrentNotification(null);
   };
+
+  if (!currentNotification) return null;
 
   return (
     <div>
-      {alertQueue.map((alert) => (
-        <div key={alert.id}>
-          {alert.selectedType === 'ALERT' && (
-            <MyAlert
-              title={alert.title}
-              description={alert.description}
-              backgroundColor={alert.backgroundColor}
-              textColor={alert.textColor}
-              borderColor={alert.borderColor}
-              onClose={() => handleCloseAlert(alert.id)}
-            />
-          )}
-          {alert.selectedType === 'ALERT_DIALOG' && (
-            <MyAlertDialog
-              isOpen={true}
-              title={alert.title}
-              description={alert.description}
-              backgroundColor={alert.backgroundColor}
-              textColor={alert.textColor}
-              borderColor={alert.borderColor}
-              onClose={() => handleCloseAlert(alert.id)}
-            />
-          )}
-          {alert.selectedType === 'TOAST' && (
-            <MyToast
-              isOpen={true}
-              preview={false}
-              title={alert.title}
-              description={alert.description}
-              backgroundColor={alert.backgroundColor}
-              textColor={alert.textColor}
-              borderColor={alert.borderColor}
-              onClose={() => handleCloseAlert(alert.id)}
-            />
-          )}
-        </div>
-      ))}
+      {currentNotification.type === 'alert' && (
+        <MyAlert
+          title={currentNotification.title}
+          description={currentNotification.message}
+          backgroundColor={currentNotification.backgroundColor}
+          textColor={currentNotification.textColor}
+          borderColor={currentNotification.borderColor}
+          onClose={handleClose}
+        />
+      )}
+      {currentNotification.type === 'alert_dialog' && (
+        <MyAlertDialog
+          isOpen={true}
+          title={currentNotification.title}
+          description={currentNotification.message}
+          backgroundColor={currentNotification.backgroundColor}
+          textColor={currentNotification.textColor}
+          borderColor={currentNotification.borderColor}
+          onClose={handleClose}
+        />
+      )}
+      {currentNotification.type === 'toast' && (
+        <MyToast
+          isOpen={true}
+          preview={false}
+          title={currentNotification.title}
+          description={currentNotification.message}
+          backgroundColor={currentNotification.backgroundColor}
+          textColor={currentNotification.textColor}
+          borderColor={currentNotification.borderColor}
+          onClose={handleClose}
+        />
+      )}
     </div>
   );
 };
