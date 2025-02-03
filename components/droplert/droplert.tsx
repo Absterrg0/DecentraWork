@@ -18,7 +18,7 @@ type Notification = {
   borderRadius:number;
 };
 
-const WEBSOCKET_URL = "http://localhost:8080";
+const WEBSOCKET_URL = "https://alertsockets.onrender.com/";
 const DROPLERT_ID = process.env.NEXT_PUBLIC_DROPLERT_ID;
 
 // Helper function to normalize paths by removing trailing slashes
