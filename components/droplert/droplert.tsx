@@ -30,7 +30,7 @@ const normalizePath = (path: string): string => {
 const isRouteMatch = (pathname: string, route: string): boolean => {
   // Normalize both pathname and route
   const normalizedPathname = normalizePath(pathname);
-  let normalizedRoute = normalizePath(route);
+  const normalizedRoute = normalizePath(route);
   
   // Check if it's a wildcard route
   if (normalizedRoute.endsWith('*')) {
@@ -46,9 +46,8 @@ const isRouteMatch = (pathname: string, route: string): boolean => {
   return normalizedPathname === normalizedRoute;
 };
 
-interface DroplertProps {}
 
-const Droplert: React.FC<DroplertProps> = () => {
+const Droplert = () => {
   const [currentNotification, setCurrentNotification] = useState<Notification | null>(null);
   const pathname = usePathname();
 
